@@ -1,3 +1,9 @@
+## 0.2.0 (2026-03-14)
+
+### Feat
+
+- add core configuration management classes and exception handling
+
 ## 0.1.1 (2026-03-14)
 
 ### Refactor
