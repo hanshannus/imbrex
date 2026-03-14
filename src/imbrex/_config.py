@@ -39,7 +39,8 @@ from pathlib import Path
 from typing import Any, TypeVar, cast
 
 from pydantic import BaseModel
-
+from contextlib import contextmanager
+import copy
 from imbrex._exceptions import (
     ConfigFileNotFoundError,
     ConfigValidationError,
@@ -53,8 +54,8 @@ from imbrex._parsers import (
     parse_string,
 )
 from imbrex._priority import DEFAULT_PRIORITY, sort_paths
+from imbrex._utils import _get_path, _MISSING, _set_path
 
-# T = TypeVar("T")
 T = TypeVar("T", bound=BaseModel)
 
 
@@ -549,18 +550,83 @@ class Config:
             raise ConfigValidationError(exc, self._data) from exc
 
     # ------------------------------------------------------------------
+    # Context manager for temporary overrides
+    # ------------------------------------------------------------------
+
+    @contextmanager
+    def override(self, overrides: dict[str, Any]):
+        """
+        Temporarily patch dot-path keys. Ideal for tests.
+
+            with cfg.override({"app.debug": True, "database.pool_size": 1}):
+                assert cfg.get("app.debug") is True
+            # original values restored here
+        """
+        backup = copy.deepcopy(self._data)
+        try:
+            for path, value in overrides.items():
+                _set_path(self._data, path, value)
+            yield self
+        finally:
+            self._data = backup
+
+    # ------------------------------------------------------------------
     # Dict-like access
     # ------------------------------------------------------------------
 
-    def get(self, key: str, default: Any = None) -> Any:
-        """Return the top-level value for *key*, or *default* if absent."""
-        return self._data.get(key, default)
+    def get(self, path: str, default: Any = _MISSING) -> Any:
+        """
+        Return the value at a dot-separated *path*.
 
-    def __getitem__(self, key: str) -> Any:
-        return self._data[key]
+        Supports dict keys, list indices, and any mix of both.
 
-    def __contains__(self, key: str) -> bool:
-        return key in self._data
+        Example dict:
+
+            {
+                "database": {
+                    "url": "sqlite:///app.db",
+                    "pool_size": 10
+                },
+                "server": {
+                    "host": "localhost",
+                    "allowed_hosts": ["myapp.com", "localhost"],
+                }
+            }
+
+            cfg.get("database.pool_size")       # → 10
+            cfg.get("server.allowed_hosts.0")   # → "myapp.com"
+            cfg.get("server")                   # → full dict
+            cfg.get("missing.key", "fallback")  # → "fallback"
+            cfg.get("missing.key")              # → raises KeyError
+
+        Parameters
+        ----------
+        path: str
+            Dot-separated path to the desired value.
+        default: Any, optional
+            Value to return if the path is not found.  If not provided, a missing
+            path will raise a KeyError.
+
+        Returns
+        -------
+        Any
+            The value at the specified path, or *default* if not found and *default*
+            is provided.
+        """
+        value = _get_path(self._data, path, _MISSING)
+        if value is _MISSING:
+            if default is _MISSING:
+                raise KeyError(path)
+            return default
+        return value
+
+    def __getitem__(self, path: str) -> Any:
+        """cfg["database.pool_size"] — raises KeyError when missing."""
+        return self.get(path)
+
+    def __contains__(self, path: str) -> bool:
+        """'database.pool_size' in cfg"""
+        return _get_path(self._data, path, _MISSING) is not _MISSING
 
     def __len__(self) -> int:
         return len(self._data)

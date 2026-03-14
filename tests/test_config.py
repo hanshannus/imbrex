@@ -339,6 +339,142 @@ class TestDictAccess:
         assert cfg.data == {"x": 1}
 
 
+# ── Config.get() ───────────────────────────────────────────────────────────
+
+
+class TestConfigGet:
+    def test_top_level_key(self) -> None:
+        cfg = Config.from_dict({"app": {"name": "TestApp"}})
+        assert cfg.get("app") == {"name": "TestApp"}
+
+    def test_nested_dot_path(self) -> None:
+        cfg = Config.from_dict({"database": {"url": "sqlite:///app.db", "pool_size": 10}})
+        assert cfg.get("database.url") == "sqlite:///app.db"
+        assert cfg.get("database.pool_size") == 10
+
+    def test_deeply_nested_path(self) -> None:
+        cfg = Config.from_dict({"a": {"b": {"c": {"d": 42}}}})
+        assert cfg.get("a.b.c.d") == 42
+
+    def test_list_index_access(self) -> None:
+        cfg = Config.from_dict({"server": {"allowed_hosts": ["myapp.com", "localhost"]}})
+        assert cfg.get("server.allowed_hosts.0") == "myapp.com"
+        assert cfg.get("server.allowed_hosts.1") == "localhost"
+
+    def test_missing_key_raises_key_error_when_no_default(self) -> None:
+        cfg = Config.from_dict({"key": "value"})
+        with pytest.raises(KeyError):
+            cfg.get("missing.key")
+
+    def test_missing_key_returns_default(self) -> None:
+        cfg = Config.from_dict({"key": "value"})
+        assert cfg.get("missing.key", "fallback") == "fallback"
+
+    def test_default_none_is_returned(self) -> None:
+        cfg = Config.from_dict({"key": "value"})
+        assert cfg.get("missing", None) is None
+
+    def test_default_false_is_returned(self) -> None:
+        cfg = Config.from_dict({"key": "value"})
+        assert cfg.get("missing", False) is False
+
+    def test_existing_value_false_is_not_replaced_by_default(self) -> None:
+        cfg = Config.from_dict({"flag": False})
+        assert cfg.get("flag", True) is False
+
+    def test_existing_value_none_is_not_replaced_by_default(self) -> None:
+        cfg = Config.from_dict({"val": None})
+        assert cfg.get("val", "fallback") is None
+
+    def test_existing_value_zero_is_not_replaced_by_default(self) -> None:
+        cfg = Config.from_dict({"count": 0})
+        assert cfg.get("count", 99) == 0
+
+    def test_partial_path_missing_returns_default(self) -> None:
+        cfg = Config.from_dict({"a": {"b": 1}})
+        assert cfg.get("a.c", "missing") == "missing"
+
+    def test_path_through_scalar_returns_default(self) -> None:
+        cfg = Config.from_dict({"a": 42})
+        assert cfg.get("a.b", "fallback") == "fallback"
+
+    def test_out_of_range_list_index_returns_default(self) -> None:
+        cfg = Config.from_dict({"items": ["x", "y"]})
+        assert cfg.get("items.99", "fallback") == "fallback"
+
+    def test_invalid_list_index_returns_default(self) -> None:
+        cfg = Config.from_dict({"items": ["x", "y"]})
+        assert cfg.get("items.notanint", "fallback") == "fallback"
+
+
+# ── Config.override() ──────────────────────────────────────────────────────
+
+
+class TestConfigOverride:
+    def test_override_single_key(self) -> None:
+        cfg = Config.from_dict({"app": {"debug": False}})
+        with cfg.override({"app.debug": True}):
+            assert cfg.get("app.debug") is True
+        assert cfg.get("app.debug") is False  # restored
+
+    def test_override_restores_on_exit(self) -> None:
+        cfg = Config.from_dict({"database": {"pool_size": 5}})
+        with cfg.override({"database.pool_size": 1}):
+            assert cfg.get("database.pool_size") == 1
+        assert cfg.get("database.pool_size") == 5
+
+    def test_override_multiple_keys(self) -> None:
+        cfg = Config.from_dict({"app": {"debug": False, "workers": 4}})
+        with cfg.override({"app.debug": True, "app.workers": 1}):
+            assert cfg.get("app.debug") is True
+            assert cfg.get("app.workers") == 1
+        assert cfg.get("app.debug") is False
+        assert cfg.get("app.workers") == 4
+
+    def test_override_creates_new_nested_key(self) -> None:
+        cfg = Config.from_dict({"app": {}})
+        with cfg.override({"app.new_key": "injected"}):
+            assert cfg.get("app.new_key") == "injected"
+        assert cfg.get("app.new_key", None) is None  # removed on exit
+
+    def test_override_top_level_key(self) -> None:
+        cfg = Config.from_dict({"version": "1.0"})
+        with cfg.override({"version": "2.0"}):
+            assert cfg.get("version") == "2.0"
+        assert cfg.get("version") == "1.0"
+
+    def test_override_yields_config_instance(self) -> None:
+        cfg = Config.from_dict({"key": "value"})
+        with cfg.override({"key": "new"}) as ctx:
+            assert ctx is cfg
+
+    def test_override_restores_on_exception(self) -> None:
+        cfg = Config.from_dict({"app": {"debug": False}})
+        with pytest.raises(RuntimeError):
+            with cfg.override({"app.debug": True}):
+                raise RuntimeError("boom")
+        assert cfg.get("app.debug") is False  # still restored
+
+    def test_override_deeply_nested_path(self) -> None:
+        cfg = Config.from_dict({"a": {"b": {"c": 1}}})
+        with cfg.override({"a.b.c": 99}):
+            assert cfg.get("a.b.c") == 99
+        assert cfg.get("a.b.c") == 1
+
+    def test_override_does_not_affect_to_dict_after_exit(self) -> None:
+        cfg = Config.from_dict({"x": 10})
+        with cfg.override({"x": 99}):
+            pass
+        assert cfg.to_dict() == {"x": 10}
+
+    def test_override_empty_dict_is_noop(self) -> None:
+        cfg = Config.from_dict({"key": "value"})
+        original_data = cfg.to_dict()
+        with cfg.override({}):
+            assert cfg.to_dict() == original_data
+        assert cfg.to_dict() == original_data
+
+
 # ── Dunder methods ─────────────────────────────────────────────────────────
 
 
