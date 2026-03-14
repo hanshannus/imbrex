@@ -136,10 +136,36 @@ cfg.sources        # ordered list of source paths/labels
 
 ---
 
+## Documentation
+
+Full documentation is available at
+**[yourorg.github.io/strata](https://yourorg.github.io/strata)** — including:
+
+- [Getting Started](https://yourorg.github.io/strata/guide/getting-started/) — up and running in 5 minutes
+- [User Guide](https://yourorg.github.io/strata/guide/loading/) — loading, merging, priority, env vars, validation
+- [API Reference](https://yourorg.github.io/strata/api/) — auto-generated from source
+- [Cookbook & Patterns](https://yourorg.github.io/strata/examples/cookbook/) — copy-paste recipes
+
+### Build docs locally
+
+```bash
+uv sync --group docs
+uv run mkdocs serve        # http://127.0.0.1:8000
+```
+
+---
+
+## Contributing
+
+See **[CONTRIBUTING.md](CONTRIBUTING.md)** for the full development workflow,
+including uv, Commitizen, prek hooks, docs, and the release process.
+
+---
+
 ## Requirements
 
-- Python ≥ 3.11  
-- `PyYAML ≥ 6.0` · `mergedeep ≥ 1.3` · `python-dotenv ≥ 1.0`  
+- Python ≥ 3.11
+- `PyYAML ≥ 6.0` · `mergedeep ≥ 1.3` · `python-dotenv ≥ 1.0`
 - `pydantic ≥ 2.0` *(optional)*
 
 ---
