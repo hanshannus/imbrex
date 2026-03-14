@@ -6,23 +6,26 @@ examples/usage.py — runnable strata demo.
 
 from __future__ import annotations
 
-import sys
 import os
+import sys
 import tempfile
 from pathlib import Path
+from typing import Any
+
+from pydantic import BaseModel, Field
 
 # ── make the package importable without installing ─────────────────────────
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from strata import Config, MergeStrategy
 
-
 # ── helpers ────────────────────────────────────────────────────────────────
+
 
 def banner(title: str) -> None:
     print(f"\n{'─' * 60}")
     print(f"  {title}")
-    print('─' * 60)
+    print("─" * 60)
 
 
 def write_configs(d: Path) -> None:
@@ -97,28 +100,30 @@ with tempfile.TemporaryDirectory() as _td:
         config_dir / "defaults.toml",
         config_dir / "production.toml",
     )
-    print(f"  app.debug   = {cfg['app']['debug']}")    # False (prod)
+    print(f"  app.debug   = {cfg['app']['debug']}")  # False (prod)
     print(f"  app.workers = {cfg['app']['workers']}")  # 8     (prod)
-    print(f"  db.url      = {cfg['database']['url']}") # prod url
-    print(f"  db.pool     = {cfg['database']['pool_size']}") # 20  (prod)
+    print(f"  db.url      = {cfg['database']['url']}")  # prod url
+    print(f"  db.pool     = {cfg['database']['pool_size']}")  # 20  (prod)
 
     # ── 3. from_dir — auto hierarchical sort (development env) ─────────
     banner("3 · from_dir — development environment (auto-sort)")
     cfg = Config.from_dir(config_dir, extension="toml", env="development")
-    print(f"  app.debug   = {cfg['app']['debug']}")    # True   (dev overrides)
+    print(f"  app.debug   = {cfg['app']['debug']}")  # True   (dev overrides)
     print(f"  app.workers = {cfg['app']['workers']}")  # 1      (dev)
-    print(f"  db.url      = {cfg['database']['url']}") # pg dev url
-    print(f"  db.pool     = {cfg['database']['pool_size']}") # 5 (defaults, not overridden by dev)
-    print(f"  log.level   = {cfg['logging']['level']}") # DEBUG  (dev)
+    print(f"  db.url      = {cfg['database']['url']}")  # pg dev url
+    print(
+        f"  db.pool     = {cfg['database']['pool_size']}"
+    )  # 5 (defaults, not overridden by dev)
+    print(f"  log.level   = {cfg['logging']['level']}")  # DEBUG  (dev)
     print(f"  sources     = {[Path(s).name for s in cfg.sources]}")
 
     # ── 4. from_dir — production env ───────────────────────────────────
     banner("4 · from_dir — production environment")
     cfg = Config.from_dir(config_dir, extension="toml", env="production")
-    print(f"  app.debug   = {cfg['app']['debug']}")    # False
+    print(f"  app.debug   = {cfg['app']['debug']}")  # False
     print(f"  app.workers = {cfg['app']['workers']}")  # 8
-    print(f"  db.pool     = {cfg['database']['pool_size']}") # 20
-    print(f"  log.level   = {cfg['logging']['level']}") # WARNING
+    print(f"  db.pool     = {cfg['database']['pool_size']}")  # 20
+    print(f"  log.level   = {cfg['logging']['level']}")  # WARNING
     print(f"  sources     = {[Path(s).name for s in cfg.sources]}")
 
     # ── 5. from_dir — explicit order ───────────────────────────────────
@@ -128,17 +133,17 @@ with tempfile.TemporaryDirectory() as _td:
         extension="toml",
         order=["defaults", "production"],  # skip development entirely
     )
-    print(f"  app.debug   = {cfg['app']['debug']}")    # False (prod)
-    print(f"  db.url      = {cfg['database']['url']}") # prod url
+    print(f"  app.debug   = {cfg['app']['debug']}")  # False (prod)
+    print(f"  db.url      = {cfg['database']['url']}")  # prod url
 
     # ── 6. from_dict ───────────────────────────────────────────────────
     banner("6 · from_dict — plain dicts")
     cfg = Config.from_dict(
         {"database": {"url": "sqlite:///default.db", "pool_size": 5}},
-        {"database": {"url": "postgresql://localhost/myapp"}},   # overrides url
+        {"database": {"url": "postgresql://localhost/myapp"}},  # overrides url
     )
-    print(f"  db.url      = {cfg['database']['url']}")      # pg url
-    print(f"  db.pool     = {cfg['database']['pool_size']}") # 5 (kept from first dict)
+    print(f"  db.url      = {cfg['database']['url']}")  # pg url
+    print(f"  db.pool     = {cfg['database']['pool_size']}")  # 5 (kept from first dict)
 
     # ── 7. from_string ─────────────────────────────────────────────────
     banner("7 · from_string — inline TOML")
@@ -155,9 +160,9 @@ with tempfile.TemporaryDirectory() as _td:
 
     # ── 9. from_env ────────────────────────────────────────────────────
     banner("9 · from_env — environment variables")
-    os.environ["APP_DATABASE__URL"]       = "postgresql://envhost/myapp"
+    os.environ["APP_DATABASE__URL"] = "postgresql://envhost/myapp"
     os.environ["APP_DATABASE__POOL_SIZE"] = "30"
-    os.environ["APP_DEBUG"]               = "true"
+    os.environ["APP_DEBUG"] = "true"
     cfg = Config.from_env(prefix="APP_")
     print(f"  database.url       = {cfg['database']['url']}")
     print(f"  database.pool_size = {cfg['database']['pool_size']}")
@@ -166,10 +171,10 @@ with tempfile.TemporaryDirectory() as _td:
     # ── 10. Config.merge ───────────────────────────────────────────────
     banner("10 · Config.merge — combine existing Config objects")
     base_cfg = Config.from_toml(config_dir / "defaults.toml")
-    env_cfg  = Config.from_toml(config_dir / "development.toml")
-    merged   = Config.merge(base_cfg, env_cfg)
-    print(f"  app.debug   = {merged['app']['debug']}")    # True (dev wins)
-    print(f"  app.name    = {merged['app']['name']}")     # MyApp (from defaults)
+    env_cfg = Config.from_toml(config_dir / "development.toml")
+    merged = Config.merge(base_cfg, env_cfg)
+    print(f"  app.debug   = {merged['app']['debug']}")  # True (dev wins)
+    print(f"  app.name    = {merged['app']['name']}")  # MyApp (from defaults)
 
     # ── 11. ADDITIVE list merge ────────────────────────────────────────
     banner("11 · MergeStrategy.ADDITIVE — lists concatenated")
@@ -185,7 +190,6 @@ with tempfile.TemporaryDirectory() as _td:
     # ── 12. Pydantic validation ────────────────────────────────────────
     banner("12 · validate — Pydantic schema")
     try:
-        from pydantic import BaseModel, Field
 
         class DatabaseSettings(BaseModel):
             url: str
@@ -198,10 +202,10 @@ with tempfile.TemporaryDirectory() as _td:
             allowed_hosts: list[str] = Field(default_factory=list)
 
         class AppSettings(BaseModel):
-            app: dict = Field(default_factory=dict)
+            app: dict[str, Any] = Field(default_factory=dict)
             database: DatabaseSettings
             server: ServerSettings
-            logging: dict = Field(default_factory=dict)
+            logging: dict[str, Any] = Field(default_factory=dict)
 
         cfg = Config.from_dir(config_dir, extension="toml", env="development")
         settings = cfg.validate(AppSettings)
@@ -217,4 +221,4 @@ with tempfile.TemporaryDirectory() as _td:
 
 print(f"\n{'─' * 60}")
 print("  All examples completed ✓")
-print('─' * 60)
+print("─" * 60)
