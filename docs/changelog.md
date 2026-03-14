@@ -5,7 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [0.1.0] — 2025-XX-XX
+## 0.2.1 — (2026-03-14)
+
+### Refactor
+
+- simplify conditional expressions and remove trailing whitespace in documentation
+
+## 0.2.0 — (2026-03-14)
+
+### Feat
+
+- add core configuration management classes and exception handling
+
+## 0.1.1 — (2026-03-14)
+
+### Refactor
+
+- clean up unused imports and improve code formatting in test files
+- improve type hints and documentation in configuration modules
+
+## 0.1.0 — (2026-03-14)
 
 ### Added
 
@@ -23,4 +42,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **Typed exception hierarchy** — `ImbrexError`, `ConfigFileNotFoundError`,
   `ConfigParseError`, `ConfigValidationError`, `UnsupportedFormatError`.
 
-[0.1.0]: https://github.com/hanshannus/imbrex/releases/tag/v0.1.0
