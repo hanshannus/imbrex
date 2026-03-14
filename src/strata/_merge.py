@@ -26,10 +26,10 @@ from typing import Any
 from mergedeep import Strategy, merge
 
 
-class MergeStrategy(str, Enum):
+class MergeStrategy(Enum):
     """Deep-merge strategy for combining config layers."""
 
-    REPLACE  = "replace"   #: Higher-priority values always win (lists replaced in full).
+    REPLACE = "replace"  #: Higher-priority values always win (lists replaced in full).
     ADDITIVE = "additive"  #: Lists concatenated; scalars replaced.
     TYPESAFE = "typesafe"  #: REPLACE, but raises TypeError on type mismatch.
 
@@ -41,6 +41,7 @@ def _to_mergedeep(strategy: MergeStrategy) -> Strategy:
 # ---------------------------------------------------------------------------
 # Core merge
 # ---------------------------------------------------------------------------
+
 
 def deep_merge(
     *dicts: dict[str, Any],
@@ -60,6 +61,7 @@ def deep_merge(
     key_strategies:
         Per-key overrides keyed by dot-separated paths, e.g.
         ``{"server.allowed_hosts": MergeStrategy.ADDITIVE}``.
+
     """
     if not dicts:
         return {}
@@ -82,6 +84,7 @@ def deep_merge(
 # Internal helpers
 # ---------------------------------------------------------------------------
 
+
 def _merge_with_overrides(
     base: dict[str, Any],
     override: dict[str, Any],
@@ -95,8 +98,8 @@ def _merge_with_overrides(
     for dotted, strat in key_strategies.items():
         if strat is not MergeStrategy.ADDITIVE:
             continue
-        base_val  = _get_nested(base, dotted)
-        over_val  = _get_nested(override, dotted)
+        base_val = _get_nested(base, dotted)
+        over_val = _get_nested(override, dotted)
         if isinstance(base_val, list) and isinstance(over_val, list):
             parts = dotted.split(".")
             node: Any = result

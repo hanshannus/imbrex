@@ -24,7 +24,7 @@ private so the public API stays ergonomic::
     cfg = Config.from_string(toml_text, fmt="toml")
 
     # ── Validate and get a typed settings object ───────────────────────
-    settings = cfg.validate(AppSettings)   # Pydantic BaseModel subclass
+    settings = cfg.validate(AppSettings)  # Pydantic BaseModel subclass
     print(settings.database.url)
 
     # ── Merge multiple Config objects ──────────────────────────────────
@@ -34,8 +34,11 @@ private so the public API stays ergonomic::
 from __future__ import annotations
 
 import os
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Any, TypeVar
+from typing import Any, TypeVar, cast
+
+from pydantic import BaseModel
 
 from strata._exceptions import (
     ConfigFileNotFoundError,
@@ -51,11 +54,11 @@ from strata._parsers import (
 )
 from strata._priority import DEFAULT_PRIORITY, sort_paths
 
-T = TypeVar("T")
+# T = TypeVar("T")
+T = TypeVar("T", bound=BaseModel)
 
 
 class Config:
-
     __slots__ = ("_data", "_sources")
 
     def __init__(self, data: dict[str, Any], sources: list[str]) -> None:
@@ -71,6 +74,7 @@ class Config:
             Ordered list of source descriptors (file paths or tags like
             ``"<dict:0>"``) that contributed to this config, from lowest to
             highest priority.
+
         """
         # Deliberately no public __init__ — use classmethods.
         self._data: dict[str, Any] = data
@@ -87,7 +91,7 @@ class Config:
 
     @property
     def sources(self) -> list[str]:
-        """Ordered list of source labels (lowest → highest priority)."""
+        """Ordered list of source labels (lowest to highest priority)."""
         return self._sources
 
     # ------------------------------------------------------------------
@@ -100,7 +104,7 @@ class Config:
         *files: str | Path,
         merge_strategy: MergeStrategy = MergeStrategy.REPLACE,
         key_strategies: dict[str, MergeStrategy] | None = None,
-    ) -> "Config":
+    ) -> Config:
         """
         Load one or more TOML files, merging in the order given.
 
@@ -115,8 +119,18 @@ class Config:
             Default merge strategy (REPLACE / ADDITIVE / TYPESAFE).
         key_strategies:
             Per-key overrides keyed by dot-separated paths.
+
+        Returns
+        -------
+        Config
+            Instance of ``Config`` containing the merged configuration.
+
         """
-        return cls._load_files(list(files), merge_strategy=merge_strategy, key_strategies=key_strategies)
+        return cls._load_files(
+            [Path(f) for f in files],
+            merge_strategy=merge_strategy,
+            key_strategies=key_strategies,
+        )
 
     @classmethod
     def from_yaml(
@@ -124,9 +138,30 @@ class Config:
         *files: str | Path,
         merge_strategy: MergeStrategy = MergeStrategy.REPLACE,
         key_strategies: dict[str, MergeStrategy] | None = None,
-    ) -> "Config":
-        """Load one or more YAML files, merging in the order given."""
-        return cls._load_files(list(files), merge_strategy=merge_strategy, key_strategies=key_strategies)
+    ) -> Config:
+        """
+        Load one or more YAML files, merging in the order given.
+
+        Parameters
+        ----------
+        *files:
+            One or more paths to ``.yaml`` files.
+        merge_strategy:
+            Default merge strategy (REPLACE / ADDITIVE / TYPESAFE).
+        key_strategies:
+            Per-key overrides keyed by dot-separated paths.
+
+        Returns
+        -------
+        Config
+            Instance of ``Config`` containing the merged configuration.
+
+        """
+        return cls._load_files(
+            [Path(f) for f in files],
+            merge_strategy=merge_strategy,
+            key_strategies=key_strategies,
+        )
 
     @classmethod
     def from_json(
@@ -134,9 +169,30 @@ class Config:
         *files: str | Path,
         merge_strategy: MergeStrategy = MergeStrategy.REPLACE,
         key_strategies: dict[str, MergeStrategy] | None = None,
-    ) -> "Config":
-        """Load one or more JSON files, merging in the order given."""
-        return cls._load_files(list(files), merge_strategy=merge_strategy, key_strategies=key_strategies)
+    ) -> Config:
+        """
+        Load one or more JSON files, merging in the order given.
+
+        Parameters
+        ----------
+        *files:
+            One or more paths to ``.json`` files.
+        merge_strategy:
+            Default merge strategy (REPLACE / ADDITIVE / TYPESAFE).
+        key_strategies:
+            Per-key overrides keyed by dot-separated paths.
+
+        Returns
+        -------
+        Config
+            Instance of ``Config`` containing the merged configuration.
+
+        """
+        return cls._load_files(
+            [Path(f) for f in files],
+            merge_strategy=merge_strategy,
+            key_strategies=key_strategies,
+        )
 
     @classmethod
     def from_file(
@@ -144,12 +200,30 @@ class Config:
         *files: str | Path,
         merge_strategy: MergeStrategy = MergeStrategy.REPLACE,
         key_strategies: dict[str, MergeStrategy] | None = None,
-    ) -> "Config":
+    ) -> Config:
         """
-        Load one or more files of *any* supported format (auto-detected from
-        extension).  Files may be of mixed formats.
+        Load one or more files of *any* supported format.
+
+        Parameters
+        ----------
+        *files:
+            One or more paths to ``.json`` files.
+        merge_strategy:
+            Default merge strategy (REPLACE / ADDITIVE / TYPESAFE).
+        key_strategies:
+            Per-key overrides keyed by dot-separated paths.
+
+        Returns
+        -------
+        Config
+            Instance of ``Config`` containing the merged configuration.
+
         """
-        return cls._load_files(list(files), merge_strategy=merge_strategy, key_strategies=key_strategies)
+        return cls._load_files(
+            [Path(f) for f in files],
+            merge_strategy=merge_strategy,
+            key_strategies=key_strategies,
+        )
 
     # ------------------------------------------------------------------
     # Classmethods — directory loader
@@ -167,10 +241,11 @@ class Config:
         priority_table: dict[str, int] | None = None,
         merge_strategy: MergeStrategy = MergeStrategy.REPLACE,
         key_strategies: dict[str, MergeStrategy] | None = None,
-    ) -> "Config":
+    ) -> Config:
         """
-        Discover and load all config files in *directory*, sorted
-        hierarchically so that higher-priority files override lower ones.
+        Discover and load all config files in *directory*.
+
+        Sorted hierarchically so that higher-priority files override lower ones.
 
         Parameters
         ----------
@@ -211,6 +286,12 @@ class Config:
         local         600
         secrets       700
         ============= ========
+
+        Returns
+        -------
+        Config
+            Instance of ``Config`` containing the merged configuration.
+
         """
         d = Path(directory)
         if not d.exists():
@@ -230,14 +311,21 @@ class Config:
                 if p is not None:
                     sorted_paths.append(p)
         else:
-            resolved_env = env or os.environ.get("APP_ENV") or os.environ.get("ENV") or os.environ.get("ENVIRONMENT")
+            resolved_env = (
+                env
+                or os.environ.get("APP_ENV")
+                or os.environ.get("ENV")
+                or os.environ.get("ENVIRONMENT")
+            )
             sorted_paths = sort_paths(
                 all_paths,
                 env=resolved_env,
                 priority_table={**DEFAULT_PRIORITY, **(priority_table or {})},
             )
 
-        return cls._load_files(sorted_paths, merge_strategy=merge_strategy, key_strategies=key_strategies)
+        return cls._load_files(
+            sorted_paths, merge_strategy=merge_strategy, key_strategies=key_strategies
+        )
 
     # ------------------------------------------------------------------
     # Classmethods — raw-data loaders
@@ -249,14 +337,32 @@ class Config:
         *dicts: dict[str, Any],
         merge_strategy: MergeStrategy = MergeStrategy.REPLACE,
         key_strategies: dict[str, MergeStrategy] | None = None,
-    ) -> "Config":
+    ) -> Config:
         """
         Build a :class:`Config` from one or more plain dicts.
 
         Dicts are merged left-to-right; the *last* dict wins.
+
+        Parameters
+        ----------
+        *dicts:
+            One or more dicts to merge in order.
+        merge_strategy:
+            Default merge strategy for every key.
+        key_strategies:
+            Per-key overrides keyed by dot-separated paths, e.g.
+            ``{"server.allowed_hosts": MergeStrategy.ADDITIVE}``.
+
+        Returns
+        -------
+        Config
+            Instance of ``Config`` containing the merged configuration.
+
         """
         sources = [f"<dict:{i}>" for i in range(len(dicts))]
-        merged = deep_merge(*dicts, strategy=merge_strategy, key_strategies=key_strategies)
+        merged = deep_merge(
+            *dicts, strategy=merge_strategy, key_strategies=key_strategies
+        )
         return cls(merged, sources)
 
     @classmethod
@@ -265,8 +371,7 @@ class Config:
         content: str,
         *,
         fmt: str,
-        merge_strategy: MergeStrategy = MergeStrategy.REPLACE,
-    ) -> "Config":
+    ) -> Config:
         """
         Parse a raw *content* string.
 
@@ -276,6 +381,12 @@ class Config:
             Raw config text.
         fmt:
             Format identifier: ``"toml"``, ``"yaml"``, or ``"json"``.
+
+        Returns
+        -------
+        Config
+            Instance of ``Config`` containing the merged configuration.
+
         """
         fmt = fmt.lower().strip(".")
         if fmt not in SUPPORTED_FORMATS:
@@ -289,7 +400,7 @@ class Config:
         prefix: str = "",
         *,
         separator: str = "__",
-    ) -> "Config":
+    ) -> Config:
         """
         Build a :class:`Config` from environment variables.
 
@@ -306,6 +417,12 @@ class Config:
             The prefix itself is stripped before key conversion.
         separator:
             Nesting separator in variable names.
+
+        Returns
+        -------
+        Config
+            Instance of ``Config`` containing the merged configuration.
+
         """
         data: dict[str, Any] = {}
         prefix_upper = prefix.upper()
@@ -313,7 +430,7 @@ class Config:
         for raw_key, value in os.environ.items():
             if prefix_upper and not raw_key.upper().startswith(prefix_upper):
                 continue
-            stripped = raw_key[len(prefix):] if prefix else raw_key
+            stripped = raw_key[len(prefix) :] if prefix else raw_key
             parts = stripped.lower().split(separator.lower())
             node: dict[str, Any] = data
             for part in parts[:-1]:
@@ -329,18 +446,36 @@ class Config:
     @classmethod
     def merge(
         cls,
-        *configs: "Config",
+        *configs: Config,
         merge_strategy: MergeStrategy = MergeStrategy.REPLACE,
         key_strategies: dict[str, MergeStrategy] | None = None,
-    ) -> "Config":
+    ) -> Config:
         """
         Merge multiple :class:`Config` objects into one.
 
         The *last* config has the highest priority.
+
+        Parameters
+        ----------
+        *configs:
+            One or more Config instances to merge in order.
+        merge_strategy:
+            Default merge strategy for every key.
+        key_strategies:
+            Per-key overrides keyed by dot-separated paths, e.g.
+            ``{"server.allowed_hosts": MergeStrategy.ADDITIVE}``.
+
+        Returns
+        -------
+        Config
+            Instance of ``Config`` containing the merged configuration.
+
         """
         dicts = [c._data for c in configs]
         sources = [src for c in configs for src in c._sources]
-        merged = deep_merge(*dicts, strategy=merge_strategy, key_strategies=key_strategies)
+        merged = deep_merge(
+            *dicts, strategy=merge_strategy, key_strategies=key_strategies
+        )
         return cls(merged, sources)
 
     # ------------------------------------------------------------------
@@ -349,8 +484,7 @@ class Config:
 
     def validate(self, schema: type[T]) -> T:
         """
-        Validate the merged config against *schema* and return a typed
-        settings object.
+        Validate the merged config against *schema*.
 
         *schema* must be a **Pydantic v2** ``BaseModel`` subclass.  If you
         pass a plain dataclass or any other callable that accepts ``**kwargs``
@@ -361,6 +495,11 @@ class Config:
         schema:
             A Pydantic ``BaseModel`` subclass (recommended) or any callable
             that accepts ``**kwargs`` and returns a settings object.
+
+        Returns
+        -------
+        T
+            An instance of *schema* populated with the validated config data.
 
         Raises
         ------
@@ -376,23 +515,27 @@ class Config:
 
             from pydantic import BaseModel
 
+
             class DBConfig(BaseModel):
                 url: str
                 pool_size: int = 5
+
 
             class AppSettings(BaseModel):
                 debug: bool = False
                 database: DBConfig
 
+
             settings = cfg.validate(AppSettings)
             print(settings.database.url)
+
         """
         try:
-            from pydantic import BaseModel, ValidationError  # type: ignore[import]
+            from pydantic import BaseModel, ValidationError
 
             if isinstance(schema, type) and issubclass(schema, BaseModel):
                 try:
-                    return schema.model_validate(self._data)  # type: ignore[return-value]
+                    return cast(T, schema.model_validate(self._data))
                 except ValidationError as exc:
                     raise ConfigValidationError(exc, self._data) from exc
 
@@ -401,7 +544,7 @@ class Config:
 
         # Generic fallback: call schema(**data)
         try:
-            return schema(**self._data)  # type: ignore[call-arg]
+            return cast(T, schema(**self._data))
         except Exception as exc:
             raise ConfigValidationError(exc, self._data) from exc
 
@@ -422,12 +565,13 @@ class Config:
     def __len__(self) -> int:
         return len(self._data)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Any]:
         return iter(self._data)
 
     def to_dict(self) -> dict[str, Any]:
         """Return a deep copy of the merged config as a plain dict."""
         import copy
+
         return copy.deepcopy(self._data)
 
     # ------------------------------------------------------------------
@@ -437,10 +581,10 @@ class Config:
     @classmethod
     def _load_files(
         cls,
-        files: list[str | Path],
+        files: list[str] | list[Path],
         merge_strategy: MergeStrategy,
         key_strategies: dict[str, MergeStrategy] | None,
-    ) -> "Config":
+    ) -> Config:
         if not files:
             return cls({}, [])
 
@@ -452,7 +596,9 @@ class Config:
             dicts.append(parse_file(p))
             sources.append(str(p))
 
-        merged = deep_merge(*dicts, strategy=merge_strategy, key_strategies=key_strategies)
+        merged = deep_merge(
+            *dicts, strategy=merge_strategy, key_strategies=key_strategies
+        )
         return cls(merged, sources)
 
     # ------------------------------------------------------------------

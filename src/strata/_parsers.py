@@ -10,12 +10,17 @@ from __future__ import annotations
 
 import json
 import tomllib
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
 import yaml
 
-from strata._exceptions import ConfigFileNotFoundError, ConfigParseError, UnsupportedFormatError
+from strata._exceptions import (
+    ConfigFileNotFoundError,
+    ConfigParseError,
+    UnsupportedFormatError,
+)
 
 # ---------------------------------------------------------------------------
 # Format registry
@@ -48,6 +53,7 @@ def _fmt_from_path(path: Path) -> str:
 # ---------------------------------------------------------------------------
 # Individual parsers
 # ---------------------------------------------------------------------------
+
 
 def _parse_toml(source: Path | str | bytes) -> dict[str, Any]:
     if isinstance(source, bytes):
@@ -116,13 +122,15 @@ _PARSERS: dict[str, Any] = {
 # Public helpers
 # ---------------------------------------------------------------------------
 
+
 def parse_file(path: Path | str) -> dict[str, Any]:
     """Parse *path* according to its file extension."""
     p = Path(path)
     if not p.exists():
         raise ConfigFileNotFoundError(p)
     fmt = _fmt_from_path(p)
-    return _PARSERS[fmt](p)
+    parser: Callable[[Path | str | bytes], dict[str, Any]] = _PARSERS[fmt]
+    return parser(p)
 
 
 def parse_string(content: str, *, fmt: str) -> dict[str, Any]:
@@ -130,7 +138,8 @@ def parse_string(content: str, *, fmt: str) -> dict[str, Any]:
     fmt = fmt.lower().strip(".")
     if fmt not in _PARSERS:
         raise UnsupportedFormatError(fmt, SUPPORTED_FORMATS)
-    return _PARSERS[fmt](content.encode() if fmt == "toml" else content)
+    parser: Callable[[Path | str | bytes], dict[str, Any]] = _PARSERS[fmt]
+    return parser(content.encode() if fmt == "toml" else content)
 
 
 def parse_bytes(content: bytes, *, fmt: str) -> dict[str, Any]:
@@ -138,7 +147,8 @@ def parse_bytes(content: bytes, *, fmt: str) -> dict[str, Any]:
     fmt = fmt.lower().strip(".")
     if fmt not in _PARSERS:
         raise UnsupportedFormatError(fmt, SUPPORTED_FORMATS)
-    return _PARSERS[fmt](content)
+    parser: Callable[[Path | str | bytes], dict[str, Any]] = _PARSERS[fmt]
+    return parser(content)
 
 
 def discover_files(
@@ -150,4 +160,6 @@ def discover_files(
     """Return all files in *directory* matching *extension*, sorted by name."""
     ext = extension if extension.startswith(".") else f".{extension}"
     glob = "**/*" if recursive else "*"
-    return sorted(p for p in directory.glob(glob) if p.is_file() and p.suffix.lower() == ext)
+    return sorted(
+        p for p in directory.glob(glob) if p.is_file() and p.suffix.lower() == ext
+    )

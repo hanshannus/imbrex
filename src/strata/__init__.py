@@ -20,9 +20,11 @@ Quick start::
     # Validate with a Pydantic model
     from pydantic import BaseModel
 
+
     class AppSettings(BaseModel):
         debug: bool = False
         database_url: str = "sqlite:///app.db"
+
 
     settings = cfg.validate(AppSettings)
     print(settings.database_url)

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 
 class StrataError(Exception):
@@ -38,7 +39,7 @@ class ConfigParseError(StrataError):
 class ConfigValidationError(StrataError):
     """Raised when the merged config fails schema validation."""
 
-    def __init__(self, cause: Exception, data: dict | None = None) -> None:
+    def __init__(self, cause: Exception, data: dict[str, Any] | None = None) -> None:
         self.cause = cause
         self.data = data
         super().__init__(f"Validation failed: {cause}")

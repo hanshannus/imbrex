@@ -18,9 +18,9 @@ The active environment is resolved (in order) from:
 
 from __future__ import annotations
 
+import fnmatch
 import os
 import re
-import fnmatch
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
@@ -29,21 +29,21 @@ from pathlib import Path
 
 #: Mapping of filename stem → integer priority (higher = applied later = wins).
 DEFAULT_PRIORITY: dict[str, int] = {
-    "defaults":    100,
-    "default":     100,
-    "base":        200,
-    "common":      200,
-    "shared":      200,
+    "defaults": 100,
+    "default": 100,
+    "base": 200,
+    "common": 200,
+    "shared": 200,
     "development": 300,
-    "dev":         300,
-    "testing":     400,
-    "test":        400,
-    "staging":     400,
-    "production":  500,
-    "prod":        500,
-    "local":       600,
-    "secrets":     700,
-    "secret":      700,
+    "dev": 300,
+    "testing": 400,
+    "test": 400,
+    "staging": 400,
+    "production": 500,
+    "prod": 500,
+    "local": 600,
+    "secrets": 700,
+    "secret": 700,
 }
 
 #: Priority assigned to the active environment file when its stem is not
@@ -54,6 +54,7 @@ _UNKNOWN_ENV_PRIORITY: int = 350
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _resolve_env() -> str | None:
     """Read the active environment name from process environment variables."""
@@ -96,6 +97,7 @@ def _stem_priority(
 # Public API
 # ---------------------------------------------------------------------------
 
+
 def sort_paths(
     paths: list[Path],
     *,
@@ -104,8 +106,7 @@ def sort_paths(
     max_env_priority: bool = True,
 ) -> list[Path]:
     """
-    Return *paths* sorted from lowest → highest priority (i.e. the correct
-    load order so that later files override earlier ones).
+    Return *paths* sorted from lowest to highest priority.
 
     Parameters
     ----------
@@ -121,6 +122,12 @@ def sort_paths(
         so you only need to supply the entries you want to change.
     max_env_priority:
         When *True* (default), exclude files that outrank the active env.
+
+    Returns
+    -------
+    list[Path]
+         Sorted list of paths, filtered by *env* if given.
+
     """
     table: dict[str, int] = {**DEFAULT_PRIORITY, **(priority_table or {})}
     active_env = (env or _resolve_env() or "").lower() or None
