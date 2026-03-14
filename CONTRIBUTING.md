@@ -65,8 +65,8 @@ the development workflow, tooling, and release process in detail.
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/hanshannus/imgrex.git
-cd imgrex
+git clone https://github.com/hanshannus/imbrex.git
+cd imbrex
 
 # 2. Install all dependencies (creates .venv automatically)
 uv sync --all-groups

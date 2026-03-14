@@ -28,8 +28,8 @@ pydantic = ["pydantic>=2.0"]
 full    = ["pydantic>=2.0"]
 
 [project.urls]
-Repository    = "https://github.com/hanshannus/imgrex"
-Documentation = "https://github.com/hanshannus/imgrex#readme"
+Repository    = "https://github.com/hanshannus/imbrex"
+Documentation = "https://github.com/hanshannus/imbrex#readme"
 
 [build-system]
 requires      = ["uv_build>=0.10.4,<0.11.0"]

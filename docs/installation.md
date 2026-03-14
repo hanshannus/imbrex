@@ -37,8 +37,8 @@ uv add "imbrex[pydantic]"   # include Pydantic v2
 ## Install from source
 
 ```bash
-git clone https://github.com/hanshannus/imgrex.git
-cd imgrex
+git clone https://github.com/hanshannus/imbrex.git
+cd imbrex
 pip install -e ".[full]"
 ```
 

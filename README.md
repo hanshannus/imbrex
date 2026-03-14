@@ -139,18 +139,21 @@ cfg.sources        # ordered list of source paths/labels
 ## Documentation
 
 Full documentation is available at
-**[hanshannus.github.io/imgrex](https://hanshannus.github.io/imgrex)** — including:
+**[hanshannus.github.io/imbrex](https://hanshannus.github.io/imbrex)** — including:
 
-- [Getting Started](https://hanshannus.github.io/imgrex/guide/getting-started/) — up and running in 5 minutes
-- [User Guide](https://hanshannus.github.io/imgrex/guide/loading/) — loading, merging, priority, env vars, validation
-- [API Reference](https://hanshannus.github.io/imgrex/api/) — auto-generated from source
-- [Cookbook & Patterns](https://hanshannus.github.io/imgrex/examples/cookbook/) — copy-paste recipes
+- [Getting Started](https://hanshannus.github.io/imbrex/guide/getting-started/) — up 
+  and running in 5 minutes
+- [User Guide](https://hanshannus.github.io/imbrex/guide/loading/) — loading, 
+  merging, priority, env vars, validation
+- [API Reference](https://hanshannus.github.io/imbrex/api/) — auto-generated from source
+- [Cookbook & Patterns](https://hanshannus.github.io/imbrex/examples/cookbook/) — 
+  copy-paste recipes
 
 ### Build docs locally
 
 ```bash
 uv sync --group docs
-uv run mkdocs serve        # http://127.0.0.1:8000
+uv run zensical serve        # http://127.0.0.1:8000
 ```
 
 ---
