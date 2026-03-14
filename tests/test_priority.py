@@ -6,10 +6,7 @@ import os
 from pathlib import Path
 from unittest.mock import patch
 
-import pytest
-
 from strata._priority import DEFAULT_PRIORITY, priority_of, sort_paths
-
 
 # ── DEFAULT_PRIORITY table ─────────────────────────────────────────────────
 
@@ -181,4 +178,3 @@ class TestCustomPriorityTable:
         )
         stems = [p.stem for p in result]
         assert stems == ["production", "defaults"]
-

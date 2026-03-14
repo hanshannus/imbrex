@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import os
-import textwrap
 from pathlib import Path
 from unittest.mock import patch
 
@@ -15,7 +14,6 @@ from strata._exceptions import (
     ConfigFileNotFoundError,
     UnsupportedFormatError,
 )
-
 
 # ── from_toml ──────────────────────────────────────────────────────────────
 
@@ -76,7 +74,9 @@ class TestFromJSON:
     def test_multiple_files_merge(self, tmp_path: Path) -> None:
         f1 = tmp_path / "a.json"
         f2 = tmp_path / "b.json"
-        f1.write_text(json.dumps({"app": {"name": "A", "workers": 1}}), encoding="utf-8")
+        f1.write_text(
+            json.dumps({"app": {"name": "A", "workers": 1}}), encoding="utf-8"
+        )
         f2.write_text(json.dumps({"app": {"name": "B"}}), encoding="utf-8")
         cfg = Config.from_json(f1, f2)
         assert cfg["app"]["name"] == "B"
@@ -156,7 +156,7 @@ class TestFromDir:
         sub = d / "sub"
         sub.mkdir(parents=True)
         (d / "defaults.toml").write_text('[app]\nname = "Top"\n', encoding="utf-8")
-        (sub / "extra.toml").write_text('[app]\nextra = true\n', encoding="utf-8")
+        (sub / "extra.toml").write_text("[app]\nextra = true\n", encoding="utf-8")
         cfg = Config.from_dir(d, extension="toml", recursive=True)
         assert cfg["app"]["extra"] is True
 
@@ -389,4 +389,3 @@ class TestFileLoaderMergeStrategies:
         f2.write_text('port = "not-a-number"\n', encoding="utf-8")
         with pytest.raises(TypeError):
             Config.from_toml(f1, f2, merge_strategy=MergeStrategy.TYPESAFE)
-

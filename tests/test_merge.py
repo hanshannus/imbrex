@@ -6,7 +6,6 @@ import pytest
 
 from strata._merge import MergeStrategy, deep_merge
 
-
 # ── Basic merge behaviour ──────────────────────────────────────────────────
 
 
@@ -178,4 +177,3 @@ class TestMergeStrategyEnum:
         assert "REPLACE" in names
         assert "ADDITIVE" in names
         assert "TYPESAFE" in names
-

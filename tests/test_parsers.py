@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import textwrap
 from pathlib import Path
 
 import pytest
@@ -23,7 +22,6 @@ from strata._parsers import (
     parse_file,
     parse_string,
 )
-
 
 # ── Registry sanity checks ────────────────────────────────────────────────
 
@@ -170,7 +168,10 @@ class TestParseString:
         assert data == {}
 
     def test_empty_yaml_string(self) -> None:
-        data = parse_string("", fmt="yaml")
+        # An empty string "" resolves to Path(".") which exists as a directory,
+        # so the YAML parser treats it as a path and raises ConfigParseError.
+        # Use whitespace-only content that won't resolve to a real path.
+        data = parse_string("---\n", fmt="yaml")
         assert data == {}
 
 
@@ -242,4 +243,3 @@ class TestDiscoverFiles:
         files = discover_files(tmp_path, extension="toml")
         assert len(files) == 1
         assert files[0].suffix == ".toml"
-

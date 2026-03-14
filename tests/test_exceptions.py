@@ -27,9 +27,7 @@ class TestExceptionHierarchy:
             ConfigValidationError,
         ],
     )
-    def test_is_subclass_of_strata_error(
-        self, exc_cls: type[StrataError]
-    ) -> None:
+    def test_is_subclass_of_strata_error(self, exc_cls: type[StrataError]) -> None:
         assert issubclass(exc_cls, StrataError)
 
     def test_config_file_not_found_is_also_file_not_found_error(self) -> None:
@@ -96,4 +94,3 @@ class TestConfigValidationError:
     def test_data_default_is_none(self) -> None:
         err = ConfigValidationError(ValueError("x"))
         assert err.data is None
-

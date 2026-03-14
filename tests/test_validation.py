@@ -10,7 +10,6 @@ from pydantic import BaseModel, Field
 from strata import Config
 from strata._exceptions import ConfigValidationError
 
-
 # ── Pydantic models used in tests ──────────────────────────────────────────
 
 
@@ -145,4 +144,3 @@ class TestValidateType:
         result = cfg.validate(AppSettings)
         assert type(result) is AppSettings
         assert type(result.database) is DatabaseSettings
-

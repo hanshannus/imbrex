@@ -165,4 +165,3 @@ def yaml_config_dir(tmp_path: Path) -> Path:
     )
 
     return d
-
