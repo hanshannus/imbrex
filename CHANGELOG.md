@@ -1,3 +1,9 @@
+## 0.2.1 (2026-03-14)
+
+### Refactor
+
+- simplify conditional expressions and remove trailing whitespace in documentation
+
 ## 0.2.0 (2026-03-14)
 
 ### Feat
