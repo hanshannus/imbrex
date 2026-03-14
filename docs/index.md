@@ -3,16 +3,16 @@ hide:
   - navigation
 ---
 
-# strata
+# imbrex
 
 <p align="center" style="font-size: 1.4em; color: var(--md-default-fg-color--light);">
   <strong>Hierarchical configuration management for Python.</strong>
 </p>
 
 <p align="center">
-  <a href="https://pypi.org/project/strata/"><img src="https://img.shields.io/pypi/v/strata?color=blue" alt="PyPI"></a>
-  <a href="https://pypi.org/project/strata/"><img src="https://img.shields.io/pypi/pyversions/strata" alt="Python"></a>
-  <a href="https://github.com/yourorg/strata/blob/main/LICENSE"><img src="https://img.shields.io/github/license/yourorg/strata" alt="License"></a>
+  <a href="https://pypi.org/project/imbrex/"><img src="https://img.shields.io/pypi/v/imbrex?color=blue" alt="PyPI"></a>
+  <a href="https://pypi.org/project/imbrex/"><img src="https://img.shields.io/pypi/pyversions/imbrex" alt="Python"></a>
+  <a href="https://github.com/hanshannus/imgrex/blob/main/LICENSE"><img src="https://img.shields.io/github/license/hanshannus/imgrex" alt="License"></a>
 </p>
 
 ---
@@ -22,16 +22,16 @@ merge them in the correct priority order, and validate the result with
 **Pydantic v2**.
 
 ```python
-from strata import Config
+from imbrex import Config
 
 cfg = Config.from_dir("config/", extension="toml", env="production")
 settings = cfg.validate(AppSettings)
 ```
 
-## Why strata?
+## Why imbrex?
 
 Most applications need configuration from multiple sources — sensible defaults,
-environment-specific overrides, local developer tweaks, and secrets.  **strata**
+environment-specific overrides, local developer tweaks, and secrets.  **imbrex**
 handles all of this with a single, composable API:
 
 - **Multi-format** — TOML, YAML, and JSON out of the box.
@@ -44,7 +44,7 @@ handles all of this with a single, composable API:
 ## Quick start
 
 ```python
-from strata import Config
+from imbrex import Config
 from pydantic import BaseModel
 
 class Database(BaseModel):
@@ -85,7 +85,7 @@ print(settings.database.pool_size) # 20
 
     ---
 
-    Install `strata` with `pip` or `uv` and create your first layered
+    Install imbrex with `pip` or `uv` and create your first layered
     configuration.
 
     [Getting Started](guide/getting-started.md)

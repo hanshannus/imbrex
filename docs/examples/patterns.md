@@ -1,6 +1,6 @@
 # Real-World Patterns
 
-Production-tested patterns for structuring configuration with **strata**.
+Production-tested patterns for structuring configuration with **imbrex**.
 
 ---
 
@@ -21,7 +21,7 @@ config/
 
 ```python
 import os
-from strata import Config
+from imbrex import Config
 
 env = os.getenv("APP_ENV", "development")
 cfg = Config.from_dir("config/", extension="toml", env=env)
@@ -43,7 +43,7 @@ Keep files for non-sensitive defaults; inject secrets via environment
 variables:
 
 ```python
-from strata import Config
+from imbrex import Config
 
 # Layer 1: File-based defaults + environment overrides
 file_cfg = Config.from_dir("config/", extension="toml", env="production")
@@ -99,7 +99,7 @@ Create deterministic test configurations without touching the filesystem:
 
 ```python
 import pytest
-from strata import Config
+from imbrex import Config
 
 @pytest.fixture()
 def app_config():
@@ -152,7 +152,7 @@ enabled = ["cdn_assets"]
 ```
 
 ```python
-from strata import Config, MergeStrategy
+from imbrex import Config, MergeStrategy
 
 cfg = Config.from_dir(
     "config/",
@@ -184,7 +184,7 @@ jobs:
       - uses: astral-sh/setup-uv@v5
       - run: uv sync
       - run: uv run python -c "
-          from strata import Config, MergeStrategy;
+          from imbrex import Config, MergeStrategy;
           cfg = Config.from_dir('config/', extension='toml',
                                 merge_strategy=MergeStrategy.TYPESAFE);
           cfg.validate(AppSettings);
@@ -198,12 +198,12 @@ Using `TYPESAFE` catches accidental type changes between environment files.
 
 ## Pattern 7 — Django settings
 
-Use **strata** as the settings loader for Django:
+Use **imbrex** as the settings loader for Django:
 
 ```python
 # settings.py
 import os
-from strata import Config
+from imbrex import Config
 from pydantic import BaseModel, Field
 
 class DjangoSettings(BaseModel):
@@ -233,7 +233,7 @@ ALLOWED_HOSTS = settings.allowed_hosts
 ```python
 # config.py
 from functools import lru_cache
-from strata import Config
+from imbrex import Config
 from pydantic import BaseModel
 
 class Settings(BaseModel):

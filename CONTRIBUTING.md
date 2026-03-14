@@ -1,6 +1,6 @@
-# Contributing to strata
+# Contributing to imbrex
 
-Thank you for considering contributing to **strata**! This document describes
+Thank you for considering contributing to **imbrex**! This document describes
 the development workflow, tooling, and release process in detail.
 
 ---
@@ -50,11 +50,11 @@ the development workflow, tooling, and release process in detail.
 
 ## Prerequisites
 
-| Tool | Version | Purpose |
-|---|---|---|
-| [Python](https://www.python.org/) | ≥ 3.11 | Runtime |
-| [uv](https://docs.astral.sh/uv/) | latest | Package manager, venv, build, publish |
-| [Git](https://git-scm.com/) | ≥ 2.30 | Version control |
+| Tool                              | Version | Purpose                               |
+|-----------------------------------|---------|---------------------------------------|
+| [Python](https://www.python.org/) | ≥ 3.11  | Runtime                               |
+| [uv](https://docs.astral.sh/uv/)  | latest  | Package manager, venv, build, publish |
+| [Git](https://git-scm.com/)       | ≥ 2.30  | Version control                       |
 
 > **uv** manages the virtual environment, dependencies, lockfile, build, and
 > publish — no need for `pip`, `setuptools`, `twine`, or `build` separately.
@@ -65,8 +65,8 @@ the development workflow, tooling, and release process in detail.
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/yourorg/strata.git
-cd strata
+git clone https://github.com/hanshannus/imgrex.git
+cd imgrex
 
 # 2. Install all dependencies (creates .venv automatically)
 uv sync --all-groups
@@ -90,8 +90,8 @@ environment.
 ## Project structure
 
 ```text
-strata/
-├── src/strata/           # Package source code
+imbrex/
+├── src/imbrex/           # Package source code
 │   ├── __init__.py
 │   ├── _config.py        # Config class
 │   ├── _exceptions.py    # Exception hierarchy
@@ -122,12 +122,12 @@ publishing.
 
 Dependencies are organised into groups in `pyproject.toml`:
 
-| Group | Section | Contents |
-|---|---|---|
-| **Runtime** | `[project] dependencies` | `PyYAML`, `mergedeep`, `python-dotenv` |
-| **Optional** | `[project.optional-dependencies]` | `pydantic` (via `strata[pydantic]` or `strata[full]`) |
-| **Dev** | `[dependency-groups] dev` | `pytest`, `ruff`, `mypy`, `commitizen`, `prek`, etc. |
-| **Docs** | `[dependency-groups] docs` | `mkdocs-material`, `mkdocstrings[python]` |
+| Group        | Section                           | Contents                                              |
+|--------------|-----------------------------------|-------------------------------------------------------|
+| **Runtime**  | `[project] dependencies`          | `PyYAML`, `python-dotenv`                             |
+| **Optional** | `[project.optional-dependencies]` | `pydantic` (via `imbrex[pydantic]` or `imbrex[full]`) |
+| **Dev**      | `[dependency-groups] dev`         | `pytest`, `ruff`, `mypy`, `commitizen`, `prek`, etc.  |
+| **Docs**     | `[dependency-groups] docs`        | `mkdocs-material`, `mkdocstrings[python]`             |
 
 ### Syncing dependencies
 
@@ -247,7 +247,7 @@ files = ["src"]
 uv run pytest
 
 # Run with coverage
-uv run pytest --cov=strata --cov-report=term-missing
+uv run pytest --cov=imbrex --cov-report=term-missing
 
 # Run a specific test file
 uv run pytest tests/test_merge.py
@@ -261,14 +261,14 @@ uv run pytest -k "validation"
 
 Test files are in `tests/` and are organised by module:
 
-| File | Covers |
-|---|---|
-| `test_exceptions.py` | Exception hierarchy and attributes |
-| `test_parsers.py` | TOML / YAML / JSON parsing, file discovery |
-| `test_merge.py` | Merge strategies and per-key overrides |
-| `test_priority.py` | Priority table, sorting, env filtering |
-| `test_config.py` | `Config` loaders, dict access, merge, repr |
-| `test_validation.py` | Pydantic schema validation |
+| File                 | Covers                                     |
+|----------------------|--------------------------------------------|
+| `test_exceptions.py` | Exception hierarchy and attributes         |
+| `test_parsers.py`    | TOML / YAML / JSON parsing, file discovery |
+| `test_merge.py`      | Merge strategies and per-key overrides     |
+| `test_priority.py`   | Priority table, sorting, env filtering     |
+| `test_config.py`     | `Config` loaders, dict access, merge, repr |
+| `test_validation.py` | Pydantic schema validation                 |
 
 ---
 
@@ -321,20 +321,20 @@ uv run prek run --from-ref main --to-ref HEAD
 
 The following hooks are configured in `prek.toml`:
 
-| Hook | Stage | What it does |
-|---|---|---|
-| `trailing-whitespace` | pre-commit | Strips trailing whitespace |
-| `end-of-file-fixer` | pre-commit | Ensures files end with a newline |
-| `check-yaml` | pre-commit | Validates YAML syntax |
-| `check-toml` | pre-commit | Validates TOML syntax |
-| `check-added-large-files` | pre-commit | Prevents accidental large file commits |
-| `check-merge-conflict` | pre-commit | Detects unresolved merge conflict markers |
-| `gitleaks` | pre-commit | Scans for hardcoded secrets and credentials |
-| `ruff` | pre-commit | Lints Python with auto-fix (`--fix`) |
-| `ruff-format` | pre-commit | Formats Python code |
-| `mypy` | pre-commit | Type-checks `src/` in strict mode |
-| `commitizen` | **commit-msg** | Validates commit message against Conventional Commits |
-| `commitizen-branch` | **pre-push** | Validates branch naming conventions |
+| Hook                      | Stage          | What it does                                          |
+|---------------------------|----------------|-------------------------------------------------------|
+| `trailing-whitespace`     | pre-commit     | Strips trailing whitespace                            |
+| `end-of-file-fixer`       | pre-commit     | Ensures files end with a newline                      |
+| `check-yaml`              | pre-commit     | Validates YAML syntax                                 |
+| `check-toml`              | pre-commit     | Validates TOML syntax                                 |
+| `check-added-large-files` | pre-commit     | Prevents accidental large file commits                |
+| `check-merge-conflict`    | pre-commit     | Detects unresolved merge conflict markers             |
+| `gitleaks`                | pre-commit     | Scans for hardcoded secrets and credentials           |
+| `ruff`                    | pre-commit     | Lints Python with auto-fix (`--fix`)                  |
+| `ruff-format`             | pre-commit     | Formats Python code                                   |
+| `mypy`                    | pre-commit     | Type-checks `src/` in strict mode                     |
+| `commitizen`              | **commit-msg** | Validates commit message against Conventional Commits |
+| `commitizen-branch`       | **pre-push**   | Validates branch naming conventions                   |
 
 ### Updating hook versions
 
@@ -420,18 +420,18 @@ This prompts you step-by-step:
 
 ### Commit types
 
-| Type | SemVer effect | When to use |
-|---|---|---|
-| `feat` | **minor** bump | A new feature or public API addition |
-| `fix` | **patch** bump | A bug fix |
-| `docs` | — | Documentation-only changes |
-| `style` | — | Formatting, whitespace (no code change) |
-| `refactor` | — | Code change that neither fixes nor adds a feature |
-| `perf` | — | Performance improvement |
-| `test` | — | Adding or correcting tests |
-| `build` | — | Build system or dependency changes |
-| `ci` | — | CI/CD configuration changes |
-| `chore` | — | Maintenance tasks |
+| Type       | SemVer effect  | When to use                                       |
+|------------|----------------|---------------------------------------------------|
+| `feat`     | **minor** bump | A new feature or public API addition              |
+| `fix`      | **patch** bump | A bug fix                                         |
+| `docs`     | —              | Documentation-only changes                        |
+| `style`    | —              | Formatting, whitespace (no code change)           |
+| `refactor` | —              | Code change that neither fixes nor adds a feature |
+| `perf`     | —              | Performance improvement                           |
+| `test`     | —              | Adding or correcting tests                        |
+| `build`    | —              | Build system or dependency changes                |
+| `ci`       | —              | CI/CD configuration changes                       |
+| `chore`    | —              | Maintenance tasks                                 |
 
 ### Breaking changes
 
@@ -531,7 +531,7 @@ API docs are **auto-generated** from source docstrings using
 Markdown file:
 
 ```markdown
-::: strata.Config
+::: imbrex.Config
     options:
       show_source: true
       members:
@@ -657,8 +657,8 @@ This creates both a source distribution and a wheel in `dist/`:
 
 ```text
 dist/
-├── strata-0.2.0.tar.gz       # sdist
-└── strata-0.2.0-py3-none-any.whl  # wheel
+├── imbrex-0.2.0.tar.gz       # sdist
+└── imbrex-0.2.0-py3-none-any.whl  # wheel
 ```
 
 The build backend is `uv_build` (configured in `pyproject.toml`
@@ -722,8 +722,8 @@ uv run cz changelog --dry-run
 uv build
 
 # 4. Verify the package contents
-tar -tzf dist/strata-*.tar.gz | head -20
-unzip -l dist/strata-*.whl | head -20
+tar -tzf dist/imbrex-*.tar.gz | head -20
+unzip -l dist/imbrex-*.whl | head -20
 
 # 5. Dry-run publish
 uv publish --dry-run
@@ -758,7 +758,7 @@ setting enforces [Semantic Versioning 2.0.0](https://semver.org/).
 - [ ] Build: `uv build --clear`
 - [ ] Publish: `uv publish` (or `--dry-run` first)
 - [ ] Push: `git push origin main --tags`
-- [ ] Verify on PyPI: https://pypi.org/project/strata/
+- [ ] Verify on PyPI: https://pypi.org/project/imbrex/
 ```
 
 ---

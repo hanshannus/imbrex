@@ -1,20 +1,20 @@
 # Getting Started
 
-This guide walks you through your first **strata** configuration in under
+This guide walks you through your first **imbrex** configuration in under
 five minutes.
 
-## 1. Install strata
+## 1. Install imbrex
 
 === "uv"
 
     ```bash
-    uv add "strata[pydantic]"
+    uv add "imbrex[pydantic]"
     ```
 
 === "pip"
 
     ```bash
-    pip install "strata[pydantic]"
+    pip install "imbrex[pydantic]"
     ```
 
 ## 2. Create configuration files
@@ -54,7 +54,7 @@ pool_size = 20
 ## 3. Load and merge
 
 ```python
-from strata import Config
+from imbrex import Config
 
 cfg = Config.from_dir("config/", extension="toml", env="production")
 
@@ -64,7 +64,7 @@ print(cfg["database"]["url"])      # "postgresql://prod-db:5432/myapp"
 print(cfg["database"]["pool_size"])# 20
 ```
 
-**strata** discovers every `.toml` file in the directory, sorts them by the
+**imbrex** discovers every `.toml` file in the directory, sorts them by the
 built-in [priority table](directory-priority.md), filters out files above
 the active environment tier, and deep-merges them left to right.
 
@@ -94,7 +94,7 @@ print(settings.database.url)       # "postgresql://prod-db:5432/myapp"
 print(settings.database.pool_size) # 20
 ```
 
-If any required field is missing or has the wrong type, strata raises
+If any required field is missing or has the wrong type, imbrex raises
 [`ConfigValidationError`](../api/exceptions.md) with the full Pydantic
 error details.
 

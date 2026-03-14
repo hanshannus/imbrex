@@ -1,4 +1,4 @@
-# strata
+# imbrex
 
 **Hierarchical configuration management for Python.**
 
@@ -7,8 +7,8 @@ the correct priority order (`defaults → dev → staging → production → loc
 and validate the result with Pydantic v2.
 
 ```
-uv add strata
-uv add strata[pydantic]   # include Pydantic v2
+uv add imbrex
+uv add imbrex[pydantic]   # include Pydantic v2
 ```
 
 ---
@@ -16,7 +16,7 @@ uv add strata[pydantic]   # include Pydantic v2
 ## Quick start
 
 ```python
-from strata import Config
+from imbrex import Config
 
 # load a directory, auto-sorted by environment tier
 cfg = Config.from_dir("config/", extension="toml", env="production")
@@ -105,7 +105,7 @@ merged = Config.merge(base_cfg, env_cfg, secret_cfg)
 ## Merge strategies
 
 ```python
-from strata import MergeStrategy
+from imbrex import MergeStrategy
 
 cfg = Config.from_dir("config/", extension="toml", merge_strategy=MergeStrategy.ADDITIVE)
 
@@ -139,12 +139,12 @@ cfg.sources        # ordered list of source paths/labels
 ## Documentation
 
 Full documentation is available at
-**[yourorg.github.io/strata](https://yourorg.github.io/strata)** — including:
+**[hanshannus.github.io/imgrex](https://hanshannus.github.io/imgrex)** — including:
 
-- [Getting Started](https://yourorg.github.io/strata/guide/getting-started/) — up and running in 5 minutes
-- [User Guide](https://yourorg.github.io/strata/guide/loading/) — loading, merging, priority, env vars, validation
-- [API Reference](https://yourorg.github.io/strata/api/) — auto-generated from source
-- [Cookbook & Patterns](https://yourorg.github.io/strata/examples/cookbook/) — copy-paste recipes
+- [Getting Started](https://hanshannus.github.io/imgrex/guide/getting-started/) — up and running in 5 minutes
+- [User Guide](https://hanshannus.github.io/imgrex/guide/loading/) — loading, merging, priority, env vars, validation
+- [API Reference](https://hanshannus.github.io/imgrex/api/) — auto-generated from source
+- [Cookbook & Patterns](https://hanshannus.github.io/imgrex/examples/cookbook/) — copy-paste recipes
 
 ### Build docs locally
 
@@ -165,7 +165,7 @@ including uv, Commitizen, prek hooks, docs, and the release process.
 ## Requirements
 
 - Python ≥ 3.11
-- `PyYAML ≥ 6.0` · `mergedeep ≥ 1.3` · `python-dotenv ≥ 1.0`
+- `PyYAML ≥ 6.0` · `python-dotenv ≥ 1.0`
 - `pydantic ≥ 2.0` *(optional)*
 
 ---

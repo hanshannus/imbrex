@@ -1,52 +1,52 @@
 # Exceptions
 
-**strata** uses a typed exception hierarchy rooted at `StrataError`.  All
-exceptions can be caught with a single `except StrataError` or individually.
+**imbrex** uses a typed exception hierarchy rooted at `ImbrexError`.  All
+exceptions can be caught with a single `except ImbrexError` or individually.
 
 ## Hierarchy
 
 ```mermaid
 graph TD
-    Exception --> StrataError
-    StrataError --> UnsupportedFormatError
-    StrataError --> ConfigFileNotFoundError
-    StrataError --> ConfigParseError
-    StrataError --> ConfigValidationError
+    Exception --> ImbrexError
+    ImbrexError --> UnsupportedFormatError
+    ImbrexError --> ConfigFileNotFoundError
+    ImbrexError --> ConfigParseError
+    ImbrexError --> ConfigValidationError
     FileNotFoundError --> ConfigFileNotFoundError
 ```
 
-!!! tip "`ConfigFileNotFoundError` inherits from both `StrataError` and `FileNotFoundError`"
+!!! tip "`ConfigFileNotFoundError` inherits from both `ImbrexError` and `FileNotFoundError`"
 
-    This means you can catch it with either `except StrataError` or
+    This means you can catch it with either `except ImbrexError` or
     `except FileNotFoundError`, depending on your error-handling style.
 
-## `StrataError`
+## `ImbrexError`
 
-::: strata.StrataError
+::: imbrex.ImbrexError
     options:
       show_source: true
 
 ## `UnsupportedFormatError`
 
-::: strata.UnsupportedFormatError
+::: imbrex.UnsupportedFormatError
     options:
       show_source: true
 
 ## `ConfigFileNotFoundError`
 
-::: strata.ConfigFileNotFoundError
+::: imbrex.ConfigFileNotFoundError
     options:
       show_source: true
 
 ## `ConfigParseError`
 
-::: strata.ConfigParseError
+::: imbrex.ConfigParseError
     options:
       show_source: true
 
 ## `ConfigValidationError`
 
-::: strata.ConfigValidationError
+::: imbrex.ConfigValidationError
     options:
       show_source: true
 

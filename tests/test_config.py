@@ -1,4 +1,4 @@
-"""Tests for strata._config.Config — loaders, dict-like access, merge, repr."""
+"""Tests for imbrex._config.Config — loaders, dict-like access, merge, repr."""
 
 from __future__ import annotations
 
@@ -9,8 +9,8 @@ from unittest.mock import patch
 
 import pytest
 
-from strata import Config, MergeStrategy
-from strata._exceptions import (
+from imbrex import Config, MergeStrategy
+from imbrex._exceptions import (
     ConfigFileNotFoundError,
     UnsupportedFormatError,
 )

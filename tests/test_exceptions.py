@@ -1,4 +1,4 @@
-"""Tests for strata._exceptions."""
+"""Tests for imbrex._exceptions."""
 
 from __future__ import annotations
 
@@ -6,17 +6,17 @@ from pathlib import Path
 
 import pytest
 
-from strata._exceptions import (
+from imbrex._exceptions import (
     ConfigFileNotFoundError,
     ConfigParseError,
     ConfigValidationError,
-    StrataError,
+    ImbrexError,
     UnsupportedFormatError,
 )
 
 
 class TestExceptionHierarchy:
-    """All custom exceptions inherit from StrataError."""
+    """All custom exceptions inherit from ImbrexError."""
 
     @pytest.mark.parametrize(
         "exc_cls",
@@ -27,8 +27,8 @@ class TestExceptionHierarchy:
             ConfigValidationError,
         ],
     )
-    def test_is_subclass_of_strata_error(self, exc_cls: type[StrataError]) -> None:
-        assert issubclass(exc_cls, StrataError)
+    def test_is_subclass_of_imbrex_error(self, exc_cls: type[ImbrexError]) -> None:
+        assert issubclass(exc_cls, ImbrexError)
 
     def test_config_file_not_found_is_also_file_not_found_error(self) -> None:
         assert issubclass(ConfigFileNotFoundError, FileNotFoundError)

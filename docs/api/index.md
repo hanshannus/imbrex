@@ -1,18 +1,18 @@
 # API Reference
 
 Complete reference for all public classes, functions, and constants exported
-by **strata**.
+by **imbrex**.
 
 ## Public API
 
-All public symbols are available from the top-level `strata` package:
+All public symbols are available from the top-level `imbrex` package:
 
 ```python
-from strata import (
+from imbrex import (
     Config,
     MergeStrategy,
     DEFAULT_PRIORITY,
-    StrataError,
+    ImbrexError,
     ConfigFileNotFoundError,
     ConfigParseError,
     ConfigValidationError,

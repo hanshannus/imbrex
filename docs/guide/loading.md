@@ -1,6 +1,6 @@
 # Loading Configuration
 
-**strata** provides multiple ways to load configuration data.  Every loader
+**imbrex** provides multiple ways to load configuration data.  Every loader
 returns a [`Config`](../api/config.md) object — an immutable, dict-like
 container that tracks its sources.
 
@@ -9,7 +9,7 @@ container that tracks its sources.
 ### Format-specific loaders
 
 ```python
-from strata import Config
+from imbrex import Config
 
 cfg = Config.from_toml("settings.toml")
 cfg = Config.from_yaml("settings.yaml")

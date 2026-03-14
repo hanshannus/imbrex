@@ -1,4 +1,4 @@
-"""Tests for strata._priority — priority ordering, env resolution, filtering."""
+"""Tests for imbrex._priority — priority ordering, env resolution, filtering."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 from unittest.mock import patch
 
-from strata._priority import DEFAULT_PRIORITY, priority_of, sort_paths
+from imbrex._priority import DEFAULT_PRIORITY, priority_of, sort_paths
 
 # ── DEFAULT_PRIORITY table ─────────────────────────────────────────────────
 

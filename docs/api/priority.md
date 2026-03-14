@@ -5,7 +5,7 @@ configuration ordering.
 
 ## `DEFAULT_PRIORITY`
 
-::: strata.DEFAULT_PRIORITY
+::: imbrex.DEFAULT_PRIORITY
     options:
       show_source: false
 
@@ -25,13 +25,13 @@ Unknown stems receive priority **0** (loaded first, overridden by everything).
 
 ## `sort_paths()`
 
-::: strata._priority.sort_paths
+::: imbrex._priority.sort_paths
     options:
       show_source: true
 
 ## `priority_of()`
 
-::: strata._priority.priority_of
+::: imbrex._priority.priority_of
     options:
       show_source: true
 

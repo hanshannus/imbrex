@@ -1,13 +1,13 @@
 # `Config`
 
-The central class in **strata** — an immutable, merged configuration container.
+The central class in **imbrex** — an immutable, merged configuration container.
 
 All loading is done through classmethods; the resulting `Config` object provides
 dict-like read access, source tracking, and Pydantic validation.
 
 ## Class reference
 
-::: strata.Config
+::: imbrex.Config
     options:
       show_source: true
       members:

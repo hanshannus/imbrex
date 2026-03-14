@@ -1,11 +1,11 @@
 # Pydantic Validation
 
-**strata** integrates with [Pydantic v2](https://docs.pydantic.dev/) to
+**imbrex** integrates with [Pydantic v2](https://docs.pydantic.dev/) to
 validate merged configuration and produce fully-typed settings objects.
 
 !!! note "Pydantic is optional"
 
-    Install with `pip install "strata[pydantic]"` or `uv add "strata[pydantic]"`.
+    Install with `pip install "imbrex[pydantic]"` or `uv add "imbrex[pydantic]"`.
     If Pydantic is not installed, `Config.validate()` falls back to calling
     `schema(**data)`.
 
@@ -13,7 +13,7 @@ validate merged configuration and produce fully-typed settings objects.
 
 ```python
 from pydantic import BaseModel
-from strata import Config
+from imbrex import Config
 
 class Settings(BaseModel):
     debug: bool = False
@@ -90,13 +90,13 @@ print(settings.workers) # 4     (str → int)
 
 ## Error handling
 
-When validation fails, strata raises
+When validation fails, imbrex raises
 [`ConfigValidationError`](../api/exceptions.md) with the original Pydantic
 error and the raw data:
 
 ```python
-from strata import Config
-from strata._exceptions import ConfigValidationError
+from imbrex import Config
+from imbrex._exceptions import ConfigValidationError
 
 cfg = Config.from_dict({"debug": True})  # missing required 'name'
 
@@ -152,7 +152,7 @@ class FlexSettings(BaseModel):
 ```python
 from pathlib import Path
 from pydantic import BaseModel, Field
-from strata import Config, MergeStrategy
+from imbrex import Config, MergeStrategy
 from typing import Any
 
 class DatabaseSettings(BaseModel):

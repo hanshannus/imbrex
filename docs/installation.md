@@ -5,25 +5,24 @@
 - **Python ≥ 3.11**
 - Core dependencies (installed automatically):
     - [`PyYAML`](https://pypi.org/project/PyYAML/) ≥ 6.0
-    - [`mergedeep`](https://pypi.org/project/mergedeep/) ≥ 1.3
     - [`python-dotenv`](https://pypi.org/project/python-dotenv/) ≥ 1.0
 
 ## Install with pip
 
 ```bash
-pip install strata
+pip install imbrex
 ```
 
 To include [Pydantic](https://docs.pydantic.dev/) v2 for schema validation:
 
 ```bash
-pip install "strata[pydantic]"
+pip install "imbrex[pydantic]"
 ```
 
 Or install everything:
 
 ```bash
-pip install "strata[full]"
+pip install "imbrex[full]"
 ```
 
 ## Install with uv
@@ -31,25 +30,25 @@ pip install "strata[full]"
 [`uv`](https://docs.astral.sh/uv/) is a fast Python package manager:
 
 ```bash
-uv add strata
-uv add "strata[pydantic]"   # include Pydantic v2
+uv add imbrex
+uv add "imbrex[pydantic]"   # include Pydantic v2
 ```
 
 ## Install from source
 
 ```bash
-git clone https://github.com/yourorg/strata.git
-cd strata
+git clone https://github.com/hanshannus/imgrex.git
+cd imgrex
 pip install -e ".[full]"
 ```
 
 ## Verify the installation
 
 ```python
->>> import strata
->>> strata.__version__
+>>> import imbrex
+>>> imbrex.__version__
 '0.1.0'
->>> from strata import Config
+>>> from imbrex import Config
 >>> cfg = Config.from_dict({"hello": "world"})
 >>> cfg["hello"]
 'world'
@@ -64,7 +63,7 @@ pip install -e ".[full]"
 
 !!! tip "Pydantic is optional"
 
-    **strata** works perfectly without Pydantic.  You can load, merge, and
+    **imbrex** works perfectly without Pydantic.  You can load, merge, and
     access configuration as plain dicts.  Pydantic is only needed when you
     call `Config.validate()` with a `BaseModel` subclass.
 

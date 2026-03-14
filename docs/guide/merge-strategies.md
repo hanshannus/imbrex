@@ -1,6 +1,6 @@
 # Merge Strategies
 
-When multiple configuration sources define the same key, **strata** needs a
+When multiple configuration sources define the same key, **imbrex** needs a
 rule to decide the final value.  The `MergeStrategy` enum provides three
 strategies.
 
@@ -18,7 +18,7 @@ The higher-priority source **unconditionally wins** for every value type,
 including lists:
 
 ```python
-from strata import Config, MergeStrategy
+from imbrex import Config, MergeStrategy
 
 cfg = Config.from_dict(
     {"hosts": ["a", "b"], "port": 80},

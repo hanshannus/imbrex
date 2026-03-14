@@ -1,13 +1,13 @@
 # Directory Loading & Priority
 
-When loading configuration from a directory, **strata** automatically discovers
+When loading configuration from a directory, **imbrex** automatically discovers
 files, sorts them by a well-known priority table, and merges them so that
 higher-priority files override lower ones.
 
 ## How it works
 
 ```python
-from strata import Config
+from imbrex import Config
 
 cfg = Config.from_dir("config/", extension="toml", env="production")
 ```
@@ -53,7 +53,7 @@ graph LR
 
 ## Environment filtering
 
-When you pass `env="development"`, strata computes the priority ceiling for
+When you pass `env="development"`, imbrex computes the priority ceiling for
 that environment (300) and **excludes** every file with a higher priority.
 This prevents production values from leaking into development:
 
@@ -71,7 +71,7 @@ cfg = Config.from_dir("config/", extension="toml", env="production")
 
 ### Automatic environment detection
 
-If you don't pass `env=`, strata checks these environment variables in order:
+If you don't pass `env=`, imbrex checks these environment variables in order:
 
 1. `APP_ENV`
 2. `ENV`
@@ -132,8 +132,8 @@ cfg = Config.from_dir("config/", extension="toml", recursive=True)
 Use `priority_of()` to inspect the numeric priority for any stem:
 
 ```python
-from strata import DEFAULT_PRIORITY
-from strata._priority import priority_of
+from imbrex import DEFAULT_PRIORITY
+from imbrex._priority import priority_of
 
 print(priority_of("defaults"))      # 100
 print(priority_of("production"))    # 500

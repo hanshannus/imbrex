@@ -1,4 +1,4 @@
-"""Shared fixtures for strata tests."""
+"""Shared fixtures for imbrex tests."""
 
 from __future__ import annotations
 

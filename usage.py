@@ -1,5 +1,5 @@
 """
-examples/usage.py — runnable strata demo.
+examples/usage.py — runnable imbrex demo.
 
     python examples/usage.py
 """
@@ -17,7 +17,7 @@ from pydantic import BaseModel, Field
 # ── make the package importable without installing ─────────────────────────
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from strata import Config, MergeStrategy
+from imbrex import Config, MergeStrategy
 
 # ── helpers ────────────────────────────────────────────────────────────────
 

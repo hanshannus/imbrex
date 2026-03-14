@@ -20,8 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **`DEFAULT_PRIORITY` table** — built-in tier ordering for config file stems.
 - **`sort_paths()`** and **`priority_of()`** — priority inspection utilities.
 - **Environment variable resolution** — `APP_ENV` / `ENV` / `ENVIRONMENT`.
-- **Typed exception hierarchy** — `StrataError`, `ConfigFileNotFoundError`,
+- **Typed exception hierarchy** — `ImbrexError`, `ConfigFileNotFoundError`,
   `ConfigParseError`, `ConfigValidationError`, `UnsupportedFormatError`.
 
-[0.1.0]: https://github.com/yourorg/strata/releases/tag/v0.1.0
+[0.1.0]: https://github.com/hanshannus/imgrex/releases/tag/v0.1.0
 

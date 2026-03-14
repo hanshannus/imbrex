@@ -1,4 +1,4 @@
-"""Tests for strata._parsers — format parsing, string/bytes parsing, file discovery."""
+"""Tests for imbrex._parsers — format parsing, string/bytes parsing, file discovery."""
 
 from __future__ import annotations
 
@@ -7,12 +7,12 @@ from pathlib import Path
 
 import pytest
 
-from strata._exceptions import (
+from imbrex._exceptions import (
     ConfigFileNotFoundError,
     ConfigParseError,
     UnsupportedFormatError,
 )
-from strata._parsers import (
+from imbrex._parsers import (
     EXT_TO_FORMAT,
     FORMAT_EXTENSIONS,
     SUPPORTED_EXTENSIONS,

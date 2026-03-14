@@ -7,8 +7,8 @@ from typing import Any
 import pytest
 from pydantic import BaseModel, Field
 
-from strata import Config
-from strata._exceptions import ConfigValidationError
+from imbrex import Config
+from imbrex._exceptions import ConfigValidationError
 
 # ── Pydantic models used in tests ──────────────────────────────────────────
 

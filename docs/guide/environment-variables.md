@@ -1,12 +1,12 @@
 # Environment Variables
 
-**strata** can build configuration from environment variables, making it
+**imbrex** can build configuration from environment variables, making it
 easy to inject secrets or platform-specific values in containers and CI.
 
 ## Basic usage
 
 ```python
-from strata import Config
+from imbrex import Config
 
 cfg = Config.from_env(prefix="APP_")
 ```
@@ -95,7 +95,7 @@ of keeping secrets out of files.
 
 ## Environment detection
 
-**strata** also reads environment variables to detect the *active environment*
+**imbrex** also reads environment variables to detect the *active environment*
 when loading directories.  The following variables are checked in order:
 
 | Variable | Example |

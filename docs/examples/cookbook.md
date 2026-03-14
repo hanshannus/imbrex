@@ -5,7 +5,7 @@ Copy-paste recipes for common configuration tasks.
 ## Load a single TOML file
 
 ```python
-from strata import Config
+from imbrex import Config
 
 cfg = Config.from_toml("settings.toml")
 print(cfg["database"]["url"])
@@ -30,7 +30,7 @@ automatically excluded.
 ## Concatenate lists across layers
 
 ```python
-from strata import Config, MergeStrategy
+from imbrex import Config, MergeStrategy
 
 cfg = Config.from_toml(
     "defaults.toml",     # allowed_hosts = ["localhost"]
@@ -45,7 +45,7 @@ print(cfg["server"]["allowed_hosts"])
 ## Catch type mismatches in CI
 
 ```python
-from strata import Config, MergeStrategy
+from imbrex import Config, MergeStrategy
 
 cfg = Config.from_dir(
     "config/",
@@ -73,7 +73,7 @@ print(cfg["database"]["url"])  # "postgresql://secret-host/db"
 
 ```python
 from pydantic import BaseModel
-from strata import Config
+from imbrex import Config
 
 class Database(BaseModel):
     url: str
@@ -93,8 +93,8 @@ assert isinstance(settings.database, Database)
 ## Handle validation errors gracefully
 
 ```python
-from strata import Config
-from strata._exceptions import ConfigValidationError
+from imbrex import Config
+from imbrex._exceptions import ConfigValidationError
 
 cfg = Config.from_dict({"debug": True})  # missing 'database'
 

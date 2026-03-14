@@ -1,10 +1,10 @@
-"""Tests for strata._merge — deep-merge strategies and helpers."""
+"""Tests for imbrex._merge — deep-merge strategies and helpers."""
 
 from __future__ import annotations
 
 import pytest
 
-from strata._merge import MergeStrategy, deep_merge
+from imbrex._merge import MergeStrategy, deep_merge
 
 # ── Basic merge behaviour ──────────────────────────────────────────────────
 
