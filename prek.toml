@@ -23,7 +23,7 @@ repo = "builtin"
 # --- Security: Gitleaks ---
 [[repos]]
 repo = "https://github.com/gitleaks/gitleaks"
-rev = "v8.30.0"
+rev = "v8.30.1"
 
   [[repos.hooks]]
   id = "gitleaks"
@@ -31,7 +31,7 @@ rev = "v8.30.0"
 # --- Python: Ruff (Lint & Format) ---
 [[repos]]
 repo = "https://github.com/astral-sh/ruff-pre-commit"
-rev = "v0.15.0"
+rev = "v0.15.6"
 
   [[repos.hooks]]
   id = "ruff"
@@ -47,12 +47,14 @@ rev = "v1.19.1"
 
   [[repos.hooks]]
   id = "mypy"
-  additional_dependencies = ["types-requests"]
+  files = "^src/"
+  args = ["--strict", "--ignore-missing-imports"]
+  additional_dependencies = ["types-PyYAML"]
 
 # --- Git History: Commitizen ---
 [[repos]]
 repo = "https://github.com/commitizen-tools/commitizen"
-rev = "v4.13.6" # Using a pinned version is safer than 'master'
+rev = "v4.13.9" # Using a pinned version is safer than 'master'
 
   [[repos.hooks]]
   id = "commitizen"
