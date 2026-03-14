@@ -155,4 +155,3 @@ Specify the format via the `extension` parameter:
 Config.from_dir("config/", extension="yaml")
 Config.from_dir("config/", extension="json")
 ```
-

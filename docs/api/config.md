@@ -32,4 +32,3 @@ dict-like read access, source tracking, and Pydantic validation.
         - to_dict
         - __repr__
         - __eq__
-

@@ -280,4 +280,3 @@ def info(settings: Settings = Depends(get_settings)):
     Always validate your merged config with a Pydantic model before using it.
     This catches missing fields, wrong types, and structural errors before
     they cause runtime bugs.
-

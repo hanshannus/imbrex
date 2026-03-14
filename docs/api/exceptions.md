@@ -49,4 +49,3 @@ graph TD
 ::: imbrex.ConfigValidationError
     options:
       show_source: true
-

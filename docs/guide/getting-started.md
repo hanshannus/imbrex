@@ -108,4 +108,3 @@ error details.
 | [Environment Variables](environment-variables.md) | `APP_DATABASE__URL` → `database.url` |
 | [Pydantic Validation](validation.md) | Nested models, strict mode, error handling |
 | [Cookbook](../examples/cookbook.md) | Ready-to-use recipes |
-

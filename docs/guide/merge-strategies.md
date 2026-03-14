@@ -144,4 +144,3 @@ Config.from_dict(dict1, dict2, merge_strategy=MergeStrategy.ADDITIVE)
 # Merging Config objects
 Config.merge(cfg1, cfg2, merge_strategy=MergeStrategy.ADDITIVE)
 ```
-

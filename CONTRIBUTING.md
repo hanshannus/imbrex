@@ -780,4 +780,3 @@ setting enforces [Semantic Versioning 2.0.0](https://semver.org/).
 | Preview release | `uv run cz bump --dry-run` |
 | Release | `uv run cz bump && uv build --clear && uv publish` |
 | Push release | `git push origin main --tags` |
-

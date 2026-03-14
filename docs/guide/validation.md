@@ -190,4 +190,3 @@ print(settings.database.url)            # postgresql://prod-db:5432/myapp
 print(settings.server.allowed_hosts)    # ["localhost", "myapp.com", ...]
 print(settings.logging.level)           # WARNING
 ```
-

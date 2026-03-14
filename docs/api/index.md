@@ -49,4 +49,3 @@ graph TD
     Config -->|sorts paths| Priority
     Merge -->|uses| MergeStrategy
 ```
-

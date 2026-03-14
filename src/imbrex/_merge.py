@@ -92,9 +92,7 @@ def _recursive_merge(
 
         # Determine the effective strategy for this key.
         effective = (
-            key_strategies.get(cur_path, strategy)
-            if key_strategies
-            else strategy
+            key_strategies.get(cur_path, strategy) if key_strategies else strategy
         )
 
         existing = result.get(key)
@@ -102,7 +100,11 @@ def _recursive_merge(
         if isinstance(existing, dict) and isinstance(value, dict):
             # Both sides are dicts — recurse.
             result[key] = _recursive_merge(
-                existing, value, strategy, key_strategies, _prefix=cur_path,
+                existing,
+                value,
+                strategy,
+                key_strategies,
+                _prefix=cur_path,
             )
         elif (
             effective is MergeStrategy.ADDITIVE

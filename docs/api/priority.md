@@ -34,4 +34,3 @@ Unknown stems receive priority **0** (loaded first, overridden by everything).
 ::: imbrex._priority.priority_of
     options:
       show_source: true
-

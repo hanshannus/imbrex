@@ -18,4 +18,3 @@ Merge strategies and the low-level merge function used internally by
 ::: imbrex._merge.deep_merge
     options:
       show_source: true
-

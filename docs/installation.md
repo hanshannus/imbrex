@@ -66,4 +66,3 @@ pip install -e ".[full]"
     **imbrex** works perfectly without Pydantic.  You can load, merge, and
     access configuration as plain dicts.  Pydantic is only needed when you
     call `Config.validate()` with a `BaseModel` subclass.
-

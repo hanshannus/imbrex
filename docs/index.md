@@ -117,4 +117,3 @@ print(settings.database.pool_size) # 20
     [Cookbook](examples/cookbook.md)
 
 </div>
-
