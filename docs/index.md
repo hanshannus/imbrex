@@ -40,6 +40,7 @@ handles all of this with a single, composable API:
 - **Flexible merge strategies** — replace, additive (list concatenation), or type-safe.
 - **Pydantic validation** — validate and get fully-typed settings objects.
 - **Environment variables** — `APP_DATABASE__URL` becomes `database.url` automatically.
+- **Remote secrets** — auto-detect `secrets.*` descriptors for AWS/Azure/GCP in `from_dir()`.
 - **Zero config** — works out of the box with sensible defaults, customisable when needed.
 
 ## Quick start

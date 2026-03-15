@@ -9,8 +9,10 @@ import pytest
 from imbrex._exceptions import (
     ConfigFileNotFoundError,
     ConfigParseError,
+    ConfigSecretDescriptorError,
     ConfigValidationError,
     ImbrexError,
+    SecretProviderError,
     UnsupportedFormatError,
 )
 
@@ -25,6 +27,8 @@ class TestExceptionHierarchy:
             ConfigFileNotFoundError,
             ConfigParseError,
             ConfigValidationError,
+            ConfigSecretDescriptorError,
+            SecretProviderError,
         ],
     )
     def test_is_subclass_of_imbrex_error(self, exc_cls: type[ImbrexError]) -> None:
@@ -94,3 +98,32 @@ class TestConfigValidationError:
     def test_data_default_is_none(self) -> None:
         err = ConfigValidationError(ValueError("x"))
         assert err.data is None
+
+
+class TestConfigSecretDescriptorError:
+    def test_message_contains_path_and_cause(self) -> None:
+        cause = ValueError("missing aws.region_name")
+        err = ConfigSecretDescriptorError("/bad/secrets.toml", cause)
+        assert "secrets.toml" in str(err)
+        assert "missing aws.region_name" in str(err)
+
+    def test_attributes(self) -> None:
+        cause = RuntimeError("boom")
+        err = ConfigSecretDescriptorError("/x.toml", cause)
+        assert err.path == Path("/x.toml")
+        assert err.cause is cause
+
+
+class TestSecretProviderError:
+    def test_message_contains_provider_and_cause(self) -> None:
+        cause = RuntimeError("network timeout")
+        err = SecretProviderError("aws", cause)
+        assert "aws" in str(err)
+        assert "network timeout" in str(err)
+
+    def test_attributes(self) -> None:
+        cause = RuntimeError("boom")
+        err = SecretProviderError("gcp", cause)
+        assert err.provider == "gcp"
+        assert err.cause is cause
+

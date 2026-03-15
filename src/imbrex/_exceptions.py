@@ -43,3 +43,22 @@ class ConfigValidationError(ImbrexError):
         self.cause = cause
         self.data = data
         super().__init__(f"Validation failed: {cause}")
+
+
+class ConfigSecretDescriptorError(ImbrexError):
+    """Raised when a secrets descriptor file is invalid."""
+
+    def __init__(self, path: Path | str, cause: Exception) -> None:
+        self.path = Path(path)
+        self.cause = cause
+        super().__init__(f"Invalid secrets descriptor {self.path}: {cause}")
+
+
+class SecretProviderError(ImbrexError):
+    """Raised when a remote secret provider call fails."""
+
+    def __init__(self, provider: str, cause: Exception) -> None:
+        self.provider = provider
+        self.cause = cause
+        super().__init__(f"Secret provider '{provider}' failed: {cause}")
+

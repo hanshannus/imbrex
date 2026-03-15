@@ -9,6 +9,7 @@ and validate the result with Pydantic v2.
 ```
 uv add imbrex
 uv add imbrex[pydantic]   # include Pydantic v2
+uv add imbrex[secrets]    # include AWS/Azure/GCP providers
 ```
 
 ---
@@ -61,6 +62,10 @@ cfg = Config.from_file("defaults.toml", "overrides.yaml", "secrets.json")
 cfg = Config.from_dir("config/", extension="toml", env="production")
 cfg = Config.from_dir("config/", extension="yaml", recursive=True)
 ```
+
+`from_dir()` can also auto-detect secret descriptor files (`secrets.*`,
+`.secrets.*`), fetch remote values from AWS/Azure/GCP, and merge them into
+the same final config object.
 
 Default priority tiers (loaded low → high, later files win):
 
@@ -145,6 +150,8 @@ Full documentation is available at
   and running in 5 minutes
 - [User Guide](https://hanshannus.github.io/imbrex/guide/loading/) — loading, 
   merging, priority, env vars, validation
+- [Remote Secrets](https://hanshannus.github.io/imbrex/guide/remote-secrets/) —
+  descriptor-driven AWS/Azure/GCP loading in `from_dir()`
 - [API Reference](https://hanshannus.github.io/imbrex/api/) — auto-generated from source
 - [Cookbook & Patterns](https://hanshannus.github.io/imbrex/examples/cookbook/) — 
   copy-paste recipes

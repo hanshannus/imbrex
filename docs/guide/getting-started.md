@@ -106,5 +106,6 @@ error details.
 | [Directory & Priority](directory-priority.md) | How the automatic tier ordering works |
 | [Merge Strategies](merge-strategies.md) | REPLACE vs ADDITIVE vs TYPESAFE |
 | [Environment Variables](environment-variables.md) | `APP_DATABASE__URL` → `database.url` |
+| [Remote Secrets](remote-secrets.md) | Auto-detect `secrets.*` and fetch AWS/Azure/GCP in `from_dir()` |
 | [Pydantic Validation](validation.md) | Nested models, strict mode, error handling |
 | [Cookbook](../examples/cookbook.md) | Ready-to-use recipes |

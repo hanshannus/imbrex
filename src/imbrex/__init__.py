@@ -34,8 +34,10 @@ from imbrex._config import Config
 from imbrex._exceptions import (
     ConfigFileNotFoundError,
     ConfigParseError,
+    ConfigSecretDescriptorError,
     ConfigValidationError,
     ImbrexError,
+    SecretProviderError,
     UnsupportedFormatError,
 )
 from imbrex._merge import MergeStrategy
@@ -52,7 +54,9 @@ __all__ = [
     "ImbrexError",
     "ConfigFileNotFoundError",
     "ConfigParseError",
+    "ConfigSecretDescriptorError",
     "ConfigValidationError",
+    "SecretProviderError",
     "UnsupportedFormatError",
 ]
 

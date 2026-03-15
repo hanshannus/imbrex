@@ -49,11 +49,11 @@ from imbrex._exceptions import (
 from imbrex._merge import MergeStrategy, deep_merge
 from imbrex._parsers import (
     SUPPORTED_FORMATS,
-    discover_files,
     parse_file,
     parse_string,
 )
 from imbrex._priority import DEFAULT_PRIORITY, sort_paths
+from imbrex._secrets import is_secret_descriptor, load_remote_secrets
 from imbrex._utils import _get_path, _MISSING, _set_path
 
 T = TypeVar("T", bound=BaseModel)
@@ -301,11 +301,23 @@ class Config:
             raise NotADirectoryError(f"Expected a directory: {d}")
 
         ext = extension if extension.startswith(".") else f".{extension}"
-        all_paths = discover_files(d, extension=ext, recursive=recursive)
+        glob = "**/*" if recursive else "*"
+        all_paths = sorted(
+            p
+            for p in d.glob(glob)
+            if p.is_file() and p.suffix.lower() in {".toml", ".yaml", ".yml", ".json"}
+        )
+
+        descriptor_paths = [p for p in all_paths if is_secret_descriptor(p)]
+        file_paths = [
+            p
+            for p in all_paths
+            if p.suffix.lower() == ext.lower() and not is_secret_descriptor(p)
+        ]
 
         if order is not None:
             # Explicit stem ordering — ignore auto-priority
-            stem_to_path = {p.stem.lower(): p for p in all_paths}
+            stem_to_path = {p.stem.lower(): p for p in file_paths}
             sorted_paths: list[Path] = []
             for stem in order:
                 p = stem_to_path.get(stem.lower())
@@ -319,14 +331,32 @@ class Config:
                 or os.environ.get("ENVIRONMENT")
             )
             sorted_paths = sort_paths(
-                all_paths,
+                file_paths,
                 env=resolved_env,
                 priority_table={**DEFAULT_PRIORITY, **(priority_table or {})},
             )
 
-        return cls._load_files(
-            sorted_paths, merge_strategy=merge_strategy, key_strategies=key_strategies
+        base_config = cls._load_files(
+            sorted_paths,
+            merge_strategy=merge_strategy,
+            key_strategies=key_strategies,
         )
+
+        secret_data, secret_sources = load_remote_secrets(
+            descriptor_paths,
+            merge_strategy=merge_strategy,
+            key_strategies=key_strategies,
+        )
+        if not secret_data:
+            return base_config
+
+        merged = deep_merge(
+            base_config.data,
+            secret_data,
+            strategy=merge_strategy,
+            key_strategies=key_strategies,
+        )
+        return cls(merged, [*base_config.sources, *secret_sources])
 
     # ------------------------------------------------------------------
     # Classmethods — raw-data loaders
@@ -531,17 +561,14 @@ class Config:
             print(settings.database.url)
 
         """
-        try:
-            from pydantic import BaseModel, ValidationError
+        if isinstance(schema, type) and issubclass(schema, BaseModel):
+            from pydantic import ValidationError
 
-            if isinstance(schema, type) and issubclass(schema, BaseModel):
-                try:
-                    return cast(T, schema.model_validate(self._data))
-                except ValidationError as exc:
-                    raise ConfigValidationError(exc, self._data) from exc
+            try:
+                return cast(T, schema.model_validate(self._data))
+            except ValidationError as exc:
+                raise ConfigValidationError(exc, self._data) from exc
 
-        except ImportError:
-            pass  # Pydantic not installed — fall through to generic callable
 
         # Generic fallback: call schema(**data)
         try:

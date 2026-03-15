@@ -59,6 +59,12 @@ full details.
 cfg = Config.from_dir("config/", extension="toml", env="production")
 ```
 
+`from_dir()` can also auto-detect secret descriptor files (`secrets.*`,
+`.secrets.*`) and fetch remote provider values (AWS/Azure/GCP) before
+returning one merged config object.
+
+See [Remote Secrets in from_dir()](remote-secrets.md).
+
 ## From plain dicts
 
 Useful for testing, programmatic config, or merging with loaded files:

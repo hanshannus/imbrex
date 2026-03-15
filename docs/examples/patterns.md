@@ -263,6 +263,40 @@ def info(settings: Settings = Depends(get_settings)):
 
 ---
 
+## Pattern 9 — Single entrypoint with remote secrets
+
+Keep non-sensitive defaults in files and secret provider mapping in a
+descriptor file (`secrets.toml`, `secrets.yaml`, `.secrets.yaml`, etc.).
+
+```text
+config/
+├── defaults.toml
+├── production.toml
+└── secrets.toml
+```
+
+```python
+from imbrex import Config
+
+cfg = Config.from_dir("config/", extension="toml", env="production")
+
+# Includes local file config and remote provider secrets
+print(cfg.get("database.password"))
+print(cfg.sources)  # includes <secret:aws> / <secret:azure> / <secret:gcp>
+```
+
+Descriptor values can be overridden by environment variables without editing
+the file:
+
+```bash
+IMBREX_SECRETS__AWS__REGION_NAME=eu-west-1
+IMBREX_SECRETS__AZURE__VAULT_URL=https://prod-vault.vault.azure.net/
+```
+
+Full walkthrough: [Remote Secrets Example](remote-secrets.md).
+
+---
+
 ## Anti-patterns to avoid
 
 !!! danger "Don't commit secrets"
