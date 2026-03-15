@@ -126,4 +126,3 @@ class TestSecretProviderError:
         err = SecretProviderError("gcp", cause)
         assert err.provider == "gcp"
         assert err.cause is cause
-

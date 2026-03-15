@@ -8,8 +8,7 @@ from unittest.mock import patch
 
 import pytest
 
-from imbrex import Config, FrozenConfigError, MergeStrategy
-
+from imbrex import Config, FrozenConfigError
 
 # ── freeze() / unfreeze() / is_frozen ──────────────────────────────────────
 
@@ -260,4 +259,3 @@ class TestChainingPattern:
     def test_unfreeze_returns_self(self) -> None:
         cfg = Config.from_dict({"a": 1}, freeze=True)
         assert cfg.unfreeze() is cfg
-

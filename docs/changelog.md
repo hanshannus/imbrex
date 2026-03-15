@@ -59,4 +59,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **Environment variable resolution** — `APP_ENV` / `ENV` / `ENVIRONMENT`.
 - **Typed exception hierarchy** — `ImbrexError`, `ConfigFileNotFoundError`,
   `ConfigParseError`, `ConfigValidationError`, `UnsupportedFormatError`.
-

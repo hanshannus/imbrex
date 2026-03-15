@@ -71,5 +71,3 @@ class FrozenConfigError(ImbrexError, AttributeError):
             f"Cannot {operation} a frozen Config. "
             "Use .unfreeze() or create a new Config instead."
         )
-
-

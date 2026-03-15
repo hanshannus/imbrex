@@ -120,7 +120,7 @@ def _set_path(data: dict[str, Any], path: str, value: Any) -> None:
 
 def _fetch_aws(config: AwsSecretsConfig) -> dict[str, Any]:
     try:
-        import boto3  # type: ignore[import-not-found]
+        import boto3
     except ImportError as exc:  # pragma: no cover - depends on optional deps
         raise RuntimeError(
             "AWS support requires boto3. Install with: pip install imbrex[aws]"
@@ -152,8 +152,12 @@ def _fetch_aws(config: AwsSecretsConfig) -> dict[str, Any]:
 
 def _fetch_azure(config: AzureSecretsConfig) -> dict[str, Any]:
     try:
-        from azure.identity import DefaultAzureCredential  # type: ignore[import-not-found]
-        from azure.keyvault.secrets import SecretClient  # type: ignore[import-not-found]
+        from azure.identity import (
+            DefaultAzureCredential,
+        )
+        from azure.keyvault.secrets import (
+            SecretClient,
+        )
     except ImportError as exc:  # pragma: no cover - depends on optional deps
         raise RuntimeError(
             "Azure support requires azure-identity and azure-keyvault-secrets. "
@@ -175,7 +179,7 @@ def _fetch_azure(config: AzureSecretsConfig) -> dict[str, Any]:
 
 def _fetch_gcp(config: GcpSecretsConfig) -> dict[str, Any]:
     try:
-        import google.cloud.secretmanager as secretmanager  # type: ignore[import-not-found]
+        import google.cloud.secretmanager as secretmanager
     except ImportError as exc:  # pragma: no cover - depends on optional deps
         raise RuntimeError(
             "GCP support requires google-cloud-secret-manager. "
@@ -305,4 +309,3 @@ def load_remote_secrets(
         key_strategies=key_strategies,
     )
     return merged, sources
-

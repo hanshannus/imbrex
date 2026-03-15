@@ -146,14 +146,14 @@ cfg.sources        # ordered list of source paths/labels
 Full documentation is available at
 **[hanshannus.github.io/imbrex](https://hanshannus.github.io/imbrex)** — including:
 
-- [Getting Started](https://hanshannus.github.io/imbrex/guide/getting-started/) — up 
+- [Getting Started](https://hanshannus.github.io/imbrex/guide/getting-started/) — up
   and running in 5 minutes
-- [User Guide](https://hanshannus.github.io/imbrex/guide/loading/) — loading, 
+- [User Guide](https://hanshannus.github.io/imbrex/guide/loading/) — loading,
   merging, priority, env vars, validation
 - [Remote Secrets](https://hanshannus.github.io/imbrex/guide/remote-secrets/) —
   descriptor-driven AWS/Azure/GCP loading in `from_dir()`
 - [API Reference](https://hanshannus.github.io/imbrex/api/) — auto-generated from source
-- [Cookbook & Patterns](https://hanshannus.github.io/imbrex/examples/cookbook/) — 
+- [Cookbook & Patterns](https://hanshannus.github.io/imbrex/examples/cookbook/) —
   copy-paste recipes
 
 ### Build docs locally

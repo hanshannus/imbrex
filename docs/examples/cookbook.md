@@ -265,4 +265,3 @@ with cfg.override({"app.debug": True}):
     assert cfg.get("app.debug") is True
 
 cfg.freeze()  # re-lock after test
-

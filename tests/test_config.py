@@ -348,7 +348,9 @@ class TestConfigGet:
         assert cfg.get("app") == {"name": "TestApp"}
 
     def test_nested_dot_path(self) -> None:
-        cfg = Config.from_dict({"database": {"url": "sqlite:///app.db", "pool_size": 10}})
+        cfg = Config.from_dict({
+            "database": {"url": "sqlite:///app.db", "pool_size": 10}
+        })
         assert cfg.get("database.url") == "sqlite:///app.db"
         assert cfg.get("database.pool_size") == 10
 
@@ -357,7 +359,9 @@ class TestConfigGet:
         assert cfg.get("a.b.c.d") == 42
 
     def test_list_index_access(self) -> None:
-        cfg = Config.from_dict({"server": {"allowed_hosts": ["myapp.com", "localhost"]}})
+        cfg = Config.from_dict({
+            "server": {"allowed_hosts": ["myapp.com", "localhost"]}
+        })
         assert cfg.get("server.allowed_hosts.0") == "myapp.com"
         assert cfg.get("server.allowed_hosts.1") == "localhost"
 

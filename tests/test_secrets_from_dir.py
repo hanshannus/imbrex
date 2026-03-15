@@ -10,7 +10,9 @@ from imbrex import Config
 from imbrex._exceptions import ConfigSecretDescriptorError
 
 
-def test_from_dir_merges_remote_secrets_last(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_from_dir_merges_remote_secrets_last(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     config_dir = tmp_path / "config"
     config_dir.mkdir()
 
@@ -44,11 +46,15 @@ secret_id = "app/db/password"
     assert any(src.startswith("<secret:aws>") for src in cfg.sources)
 
 
-def test_from_dir_detects_dot_secrets_yaml(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_from_dir_detects_dot_secrets_yaml(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     config_dir = tmp_path / "config"
     config_dir.mkdir()
 
-    (config_dir / "defaults.toml").write_text('[app]\nname = "base"\n', encoding="utf-8")
+    (config_dir / "defaults.toml").write_text(
+        '[app]\nname = "base"\n', encoding="utf-8"
+    )
     (config_dir / ".secrets.yaml").write_text(
         """
 aws:
@@ -142,5 +148,3 @@ secret_id = "x/value"
 
     cfg = Config.from_dir(config_dir, extension="toml")
     assert cfg.get("x.value") == "from-secret"
-
-

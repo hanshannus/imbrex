@@ -77,4 +77,3 @@ graph TD
 ::: imbrex.FrozenConfigError
     options:
       show_source: true
-

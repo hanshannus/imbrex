@@ -118,4 +118,3 @@ pip install "imbrex[secrets]"
 
 - Invalid descriptor schema raises `ConfigSecretDescriptorError`.
 - Provider fetch failures raise `SecretProviderError`.
-

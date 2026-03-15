@@ -33,14 +33,15 @@ private so the public API stays ergonomic::
 
 from __future__ import annotations
 
+import copy
 import os
 from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, TypeVar, cast
+from typing import Any, TypeVar
 
 from pydantic import BaseModel
-from contextlib import contextmanager
-import copy
+
 from imbrex._exceptions import (
     ConfigFileNotFoundError,
     ConfigValidationError,
@@ -55,13 +56,17 @@ from imbrex._parsers import (
 )
 from imbrex._priority import DEFAULT_PRIORITY, sort_paths
 from imbrex._secrets import is_secret_descriptor, load_remote_secrets
-from imbrex._utils import _get_path, _MISSING, _set_path
+from imbrex._utils import _MISSING, _get_path, _set_path
 
 T = TypeVar("T", bound=BaseModel)
 
 
 class Config:
     __slots__ = ("_data", "_sources", "_frozen")
+
+    _data: dict[str, Any]
+    _sources: list[str]
+    _frozen: bool
 
     def __init__(
         self,
@@ -88,7 +93,7 @@ class Config:
             raises :class:`FrozenConfigError`.
 
         """
-        # Deliberately no public __init__ — use classmethods.
+        # Deliberately no public __init__ — use class methods.
         object.__setattr__(self, "_data", data)
         object.__setattr__(self, "_sources", sources)
         object.__setattr__(self, "_frozen", freeze)
@@ -317,29 +322,31 @@ class Config:
 
         Parameters
         ----------
-        directory:
+        directory: str | Path
             Path to the config directory.
-        extension:
+        extension: str (default: "toml")
             File extension to scan for (e.g. ``"toml"``, ``"yaml"``).
-        env:
+        env: str (default: "development")
             Active environment name (e.g. ``"production"``).  Files whose
             priority tier is *above* this environment are excluded so loading
             with ``env="development"`` never silently applies production
             overrides.  Auto-detected from ``APP_ENV`` / ``ENV`` /
             ``ENVIRONMENT`` when *None*.
-        order:
+        order: list[str] | None
             Explicit list of file stems in load order, e.g.
             ``["defaults", "development", "production"]``.  When given,
             *only* these stems are loaded (in exactly this order) and the
             automatic priority sort is bypassed.
-        recursive:
+        recursive: bool (default: False)
             Descend into sub-directories.
-        priority_table:
+        priority_table: dict[str, int] | None
             Custom priority entries merged on top of the built-in table.
-        merge_strategy:
+        merge_strategy: MergeStrategy (default: "REPLACE")
             Default merge strategy.
-        key_strategies:
+        key_strategies: dict[str, MergeStrategy] | None
             Per-key merge strategy overrides.
+        freeze: bool (default: False)
+            Lock the returned Config against mutation.
 
         Default priority tiers
         ----------------------
@@ -445,14 +452,14 @@ class Config:
 
         Parameters
         ----------
-        *dicts:
+        *dicts: dict[str, Any]
             One or more dicts to merge in order.
-        merge_strategy:
+        merge_strategy: MergeStrategy (default: "REPLACE")
             Default merge strategy for every key.
-        key_strategies:
+        key_strategies: dict[str, MergeStrategy] | None
             Per-key overrides keyed by dot-separated paths, e.g.
             ``{"server.allowed_hosts": MergeStrategy.ADDITIVE}``.
-        freeze:
+        freeze: bool (default: False)
             Lock the returned Config against mutation.
 
         Returns
@@ -480,11 +487,11 @@ class Config:
 
         Parameters
         ----------
-        content:
+        content: str
             Raw config text.
-        fmt:
+        fmt: str
             Format identifier: ``"toml"``, ``"yaml"``, or ``"json"``.
-        freeze:
+        freeze: bool (default: False)
             Lock the returned Config against mutation.
 
         Returns
@@ -518,11 +525,13 @@ class Config:
 
         Parameters
         ----------
-        prefix:
+        prefix: str (default: "")
             Only variables beginning with *prefix* are included.
             The prefix itself is stripped before key conversion.
-        separator:
+        separator: str (default: "__")
             Nesting separator in variable names.
+        freeze: bool (default: False)
+            Lock the returned Config against mutation.
 
         Returns
         -------
@@ -564,14 +573,14 @@ class Config:
 
         Parameters
         ----------
-        *configs:
+        *configs: :class:`Config`
             One or more Config instances to merge in order.
-        merge_strategy:
+        merge_strategy: :class:`MergeStrategy`
             Default merge strategy for every key.
-        key_strategies:
+        key_strategies: dict[str, :class:`MergeStrategy`]
             Per-key overrides keyed by dot-separated paths, e.g.
             ``{"server.allowed_hosts": MergeStrategy.ADDITIVE}``.
-        freeze:
+        freeze: bool (default: False)
             Lock the returned Config against mutation.
 
         Returns
@@ -601,7 +610,7 @@ class Config:
 
         Parameters
         ----------
-        schema:
+        schema: type[T]
             A Pydantic ``BaseModel`` subclass (recommended) or any callable
             that accepts ``**kwargs`` and returns a settings object.
 
@@ -643,14 +652,13 @@ class Config:
             from pydantic import ValidationError
 
             try:
-                return cast(T, schema.model_validate(self._data))
+                return schema.model_validate(self._data)
             except ValidationError as exc:
                 raise ConfigValidationError(exc, self._data) from exc
 
-
         # Generic fallback: call schema(**data)
         try:
-            return cast(T, schema(**self._data))
+            return schema(**self._data)
         except Exception as exc:
             raise ConfigValidationError(exc, self._data) from exc
 
@@ -659,7 +667,7 @@ class Config:
     # ------------------------------------------------------------------
 
     @contextmanager
-    def override(self, overrides: dict[str, Any]):
+    def override(self, overrides: dict[str, Any]) -> Iterator[Config]:
         """
         Temporarily patch dot-path keys. Ideal for tests.
 
@@ -667,7 +675,13 @@ class Config:
                 assert cfg.get("app.debug") is True
             # original values restored here
 
+        Parameters
+        ----------
+        overrides: dict[str, Any]
+            Mapping of dot-separated paths to override values.
+
         Raises :class:`FrozenConfigError` if the config is frozen.
+
         """
         self._check_frozen("override")
         backup = copy.deepcopy(self._data)
@@ -720,6 +734,7 @@ class Config:
         Any
             The value at the specified path, or *default* if not found and *default*
             is provided.
+
         """
         value = _get_path(self._data, path, _MISSING)
         if value is _MISSING:
@@ -729,11 +744,9 @@ class Config:
         return value
 
     def __getitem__(self, path: str) -> Any:
-        """cfg["database.pool_size"] — raises KeyError when missing."""
         return self.get(path)
 
     def __contains__(self, path: str) -> bool:
-        """'database.pool_size' in cfg"""
         return _get_path(self._data, path, _MISSING) is not _MISSING
 
     def __len__(self) -> int:

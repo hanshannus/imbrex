@@ -12,7 +12,7 @@ hide:
 <p align="center">
   <a href="https://pypi.org/project/imbrex/"><img src="https://img.shields.io/pypi/v/imbrex?color=blue" alt="PyPI"></a>
   <a href="https://pypi.org/project/imbrex/"><img src="https://img.shields.io/pypi/pyversions/imbrex" alt="Python"></a>
-  <a href="https://github.com/hanshannus/imbrex/blob/main/LICENSE"><img 
+  <a href="https://github.com/hanshannus/imbrex/blob/main/LICENSE"><img
 src="https://img.shields.io/github/license/hanshannus/imbrex" alt="License"></a>
 </p>
 

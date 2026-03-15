@@ -1,4 +1,5 @@
-"""Opt-in integration tests for AWS/Azure/GCP secret providers.
+"""
+Opt-in integration tests for AWS/Azure/GCP secret providers.
 
 These tests are intentionally skipped by default because they require
 real cloud credentials and test secret resources.
@@ -47,15 +48,17 @@ def test_aws_secrets_manager_roundtrip(tmp_path: Path) -> None:
 
     config_dir = tmp_path / "config"
     config_dir.mkdir()
-    (config_dir / "defaults.toml").write_text('[app]\nname = "base"\n', encoding="utf-8")
+    (config_dir / "defaults.toml").write_text(
+        '[app]\nname = "base"\n', encoding="utf-8"
+    )
     (config_dir / "secrets.toml").write_text(
         f"""
 [aws]
 enabled = true
-region_name = "{env['AWS_REGION']}"
+region_name = "{env["AWS_REGION"]}"
 [[aws.items]]
 path = "integration.aws.payload"
-secret_id = "{env['AWS_TEST_SECRET_ID']}"
+secret_id = "{env["AWS_TEST_SECRET_ID"]}"
         """.strip(),
         encoding="utf-8",
     )
@@ -76,15 +79,17 @@ def test_azure_key_vault_roundtrip(tmp_path: Path) -> None:
 
     config_dir = tmp_path / "config"
     config_dir.mkdir()
-    (config_dir / "defaults.toml").write_text('[app]\nname = "base"\n', encoding="utf-8")
+    (config_dir / "defaults.toml").write_text(
+        '[app]\nname = "base"\n', encoding="utf-8"
+    )
     (config_dir / "secrets.toml").write_text(
         f"""
 [azure]
 enabled = true
-vault_url = "{env['AZURE_KEYVAULT_URL']}"
+vault_url = "{env["AZURE_KEYVAULT_URL"]}"
 [[azure.items]]
 path = "integration.azure.payload"
-secret_id = "{env['AZURE_TEST_SECRET_NAME']}"
+secret_id = "{env["AZURE_TEST_SECRET_NAME"]}"
         """.strip(),
         encoding="utf-8",
     )
@@ -104,15 +109,17 @@ def test_gcp_secret_manager_roundtrip(tmp_path: Path) -> None:
 
     config_dir = tmp_path / "config"
     config_dir.mkdir()
-    (config_dir / "defaults.toml").write_text('[app]\nname = "base"\n', encoding="utf-8")
+    (config_dir / "defaults.toml").write_text(
+        '[app]\nname = "base"\n', encoding="utf-8"
+    )
     (config_dir / "secrets.toml").write_text(
         f"""
 [gcp]
 enabled = true
-project_id = "{env['GCP_PROJECT_ID']}"
+project_id = "{env["GCP_PROJECT_ID"]}"
 [[gcp.items]]
 path = "integration.gcp.payload"
-secret_id = "{env['GCP_TEST_SECRET_ID']}"
+secret_id = "{env["GCP_TEST_SECRET_ID"]}"
         """.strip(),
         encoding="utf-8",
     )
@@ -122,4 +129,3 @@ secret_id = "{env['GCP_TEST_SECRET_ID']}"
 
     assert value is not None
     assert any(src.startswith("<secret:gcp>") for src in cfg.sources)
-
