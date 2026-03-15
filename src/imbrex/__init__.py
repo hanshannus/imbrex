@@ -36,6 +36,7 @@ from imbrex._exceptions import (
     ConfigParseError,
     ConfigSecretDescriptorError,
     ConfigValidationError,
+    FrozenConfigError,
     ImbrexError,
     SecretProviderError,
     UnsupportedFormatError,
@@ -56,6 +57,7 @@ __all__ = [
     "ConfigParseError",
     "ConfigSecretDescriptorError",
     "ConfigValidationError",
+    "FrozenConfigError",
     "SecretProviderError",
     "UnsupportedFormatError",
 ]

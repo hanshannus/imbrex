@@ -16,6 +16,7 @@ from imbrex import (
     ConfigFileNotFoundError,
     ConfigParseError,
     ConfigValidationError,
+    FrozenConfigError,
     UnsupportedFormatError,
 )
 ```
@@ -37,6 +38,7 @@ graph TD
         Config
         MergeStrategy
         Priority["DEFAULT_PRIORITY<br/>sort_paths · priority_of"]
+        Exceptions["FrozenConfigError<br/>ConfigValidationError<br/>..."]
     end
 
     subgraph "Internals"
@@ -47,5 +49,6 @@ graph TD
     Config -->|loads files| Parsers
     Config -->|merges dicts| Merge
     Config -->|sorts paths| Priority
+    Config -->|freeze / override| Config
     Merge -->|uses| MergeStrategy
 ```

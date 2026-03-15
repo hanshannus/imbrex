@@ -44,6 +44,7 @@ import copy
 from imbrex._exceptions import (
     ConfigFileNotFoundError,
     ConfigValidationError,
+    FrozenConfigError,
     UnsupportedFormatError,
 )
 from imbrex._merge import MergeStrategy, deep_merge
@@ -60,9 +61,15 @@ T = TypeVar("T", bound=BaseModel)
 
 
 class Config:
-    __slots__ = ("_data", "_sources")
+    __slots__ = ("_data", "_sources", "_frozen")
 
-    def __init__(self, data: dict[str, Any], sources: list[str]) -> None:
+    def __init__(
+        self,
+        data: dict[str, Any],
+        sources: list[str],
+        *,
+        freeze: bool = False,
+    ) -> None:
         """
         Immutable, merged configuration container.
 
@@ -75,11 +82,54 @@ class Config:
             Ordered list of source descriptors (file paths or tags like
             ``"<dict:0>"``) that contributed to this config, from lowest to
             highest priority.
+        freeze:
+            When *True* the instance is immediately frozen; any subsequent
+            mutation attempt (``override``, direct ``_data`` replacement)
+            raises :class:`FrozenConfigError`.
 
         """
         # Deliberately no public __init__ — use classmethods.
-        self._data: dict[str, Any] = data
-        self._sources: list[str] = sources
+        object.__setattr__(self, "_data", data)
+        object.__setattr__(self, "_sources", sources)
+        object.__setattr__(self, "_frozen", freeze)
+
+    # ------------------------------------------------------------------
+    # Freeze / unfreeze
+    # ------------------------------------------------------------------
+
+    def _check_frozen(self, operation: str = "mutate") -> None:
+        """Raise if the instance is frozen."""
+        if self._frozen:
+            raise FrozenConfigError(operation)
+
+    @property
+    def is_frozen(self) -> bool:
+        """Return *True* if the config is frozen."""
+        return self._frozen
+
+    def freeze(self) -> Config:
+        """
+        Lock the config so any mutation raises :class:`FrozenConfigError`.
+
+        Returns *self* so you can chain: ``cfg = Config.from_dict(...).freeze()``
+        """
+        object.__setattr__(self, "_frozen", True)
+        return self
+
+    def unfreeze(self) -> Config:
+        """
+        Unlock a previously frozen config.
+
+        Returns *self* for chaining.
+        """
+        object.__setattr__(self, "_frozen", False)
+        return self
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        # Guard _data and _sources against external mutation when frozen.
+        if name in ("_data", "_sources") and self._frozen:
+            raise FrozenConfigError(f"set {name}")
+        object.__setattr__(self, name, value)
 
     # ------------------------------------------------------------------
     # Properties
@@ -105,6 +155,7 @@ class Config:
         *files: str | Path,
         merge_strategy: MergeStrategy = MergeStrategy.REPLACE,
         key_strategies: dict[str, MergeStrategy] | None = None,
+        freeze: bool = False,
     ) -> Config:
         """
         Load one or more TOML files, merging in the order given.
@@ -120,6 +171,8 @@ class Config:
             Default merge strategy (REPLACE / ADDITIVE / TYPESAFE).
         key_strategies:
             Per-key overrides keyed by dot-separated paths.
+        freeze:
+            Lock the returned Config against mutation.
 
         Returns
         -------
@@ -131,6 +184,7 @@ class Config:
             [Path(f) for f in files],
             merge_strategy=merge_strategy,
             key_strategies=key_strategies,
+            freeze=freeze,
         )
 
     @classmethod
@@ -139,6 +193,7 @@ class Config:
         *files: str | Path,
         merge_strategy: MergeStrategy = MergeStrategy.REPLACE,
         key_strategies: dict[str, MergeStrategy] | None = None,
+        freeze: bool = False,
     ) -> Config:
         """
         Load one or more YAML files, merging in the order given.
@@ -151,6 +206,8 @@ class Config:
             Default merge strategy (REPLACE / ADDITIVE / TYPESAFE).
         key_strategies:
             Per-key overrides keyed by dot-separated paths.
+        freeze:
+            Lock the returned Config against mutation.
 
         Returns
         -------
@@ -162,6 +219,7 @@ class Config:
             [Path(f) for f in files],
             merge_strategy=merge_strategy,
             key_strategies=key_strategies,
+            freeze=freeze,
         )
 
     @classmethod
@@ -170,6 +228,7 @@ class Config:
         *files: str | Path,
         merge_strategy: MergeStrategy = MergeStrategy.REPLACE,
         key_strategies: dict[str, MergeStrategy] | None = None,
+        freeze: bool = False,
     ) -> Config:
         """
         Load one or more JSON files, merging in the order given.
@@ -182,6 +241,8 @@ class Config:
             Default merge strategy (REPLACE / ADDITIVE / TYPESAFE).
         key_strategies:
             Per-key overrides keyed by dot-separated paths.
+        freeze:
+            Lock the returned Config against mutation.
 
         Returns
         -------
@@ -193,6 +254,7 @@ class Config:
             [Path(f) for f in files],
             merge_strategy=merge_strategy,
             key_strategies=key_strategies,
+            freeze=freeze,
         )
 
     @classmethod
@@ -201,6 +263,7 @@ class Config:
         *files: str | Path,
         merge_strategy: MergeStrategy = MergeStrategy.REPLACE,
         key_strategies: dict[str, MergeStrategy] | None = None,
+        freeze: bool = False,
     ) -> Config:
         """
         Load one or more files of *any* supported format.
@@ -213,6 +276,8 @@ class Config:
             Default merge strategy (REPLACE / ADDITIVE / TYPESAFE).
         key_strategies:
             Per-key overrides keyed by dot-separated paths.
+        freeze:
+            Lock the returned Config against mutation.
 
         Returns
         -------
@@ -224,6 +289,7 @@ class Config:
             [Path(f) for f in files],
             merge_strategy=merge_strategy,
             key_strategies=key_strategies,
+            freeze=freeze,
         )
 
     # ------------------------------------------------------------------
@@ -242,6 +308,7 @@ class Config:
         priority_table: dict[str, int] | None = None,
         merge_strategy: MergeStrategy = MergeStrategy.REPLACE,
         key_strategies: dict[str, MergeStrategy] | None = None,
+        freeze: bool = False,
     ) -> Config:
         """
         Discover and load all config files in *directory*.
@@ -340,6 +407,7 @@ class Config:
             sorted_paths,
             merge_strategy=merge_strategy,
             key_strategies=key_strategies,
+            freeze=freeze,
         )
 
         secret_data, secret_sources = load_remote_secrets(
@@ -356,7 +424,7 @@ class Config:
             strategy=merge_strategy,
             key_strategies=key_strategies,
         )
-        return cls(merged, [*base_config.sources, *secret_sources])
+        return cls(merged, [*base_config.sources, *secret_sources], freeze=freeze)
 
     # ------------------------------------------------------------------
     # Classmethods — raw-data loaders
@@ -368,6 +436,7 @@ class Config:
         *dicts: dict[str, Any],
         merge_strategy: MergeStrategy = MergeStrategy.REPLACE,
         key_strategies: dict[str, MergeStrategy] | None = None,
+        freeze: bool = False,
     ) -> Config:
         """
         Build a :class:`Config` from one or more plain dicts.
@@ -383,6 +452,8 @@ class Config:
         key_strategies:
             Per-key overrides keyed by dot-separated paths, e.g.
             ``{"server.allowed_hosts": MergeStrategy.ADDITIVE}``.
+        freeze:
+            Lock the returned Config against mutation.
 
         Returns
         -------
@@ -394,7 +465,7 @@ class Config:
         merged = deep_merge(
             *dicts, strategy=merge_strategy, key_strategies=key_strategies
         )
-        return cls(merged, sources)
+        return cls(merged, sources, freeze=freeze)
 
     @classmethod
     def from_string(
@@ -402,6 +473,7 @@ class Config:
         content: str,
         *,
         fmt: str,
+        freeze: bool = False,
     ) -> Config:
         """
         Parse a raw *content* string.
@@ -412,6 +484,8 @@ class Config:
             Raw config text.
         fmt:
             Format identifier: ``"toml"``, ``"yaml"``, or ``"json"``.
+        freeze:
+            Lock the returned Config against mutation.
 
         Returns
         -------
@@ -423,7 +497,7 @@ class Config:
         if fmt not in SUPPORTED_FORMATS:
             raise UnsupportedFormatError(fmt, SUPPORTED_FORMATS)
         data = parse_string(content, fmt=fmt)
-        return cls(data, [f"<string:{fmt}>"])
+        return cls(data, [f"<string:{fmt}>"], freeze=freeze)
 
     @classmethod
     def from_env(
@@ -431,6 +505,7 @@ class Config:
         prefix: str = "",
         *,
         separator: str = "__",
+        freeze: bool = False,
     ) -> Config:
         """
         Build a :class:`Config` from environment variables.
@@ -468,7 +543,7 @@ class Config:
                 node = node.setdefault(part, {})
             node[parts[-1]] = value
 
-        return cls(data, [f"<env prefix={prefix!r}>"])
+        return cls(data, [f"<env prefix={prefix!r}>"], freeze=freeze)
 
     # ------------------------------------------------------------------
     # Classmethod — merge existing Config objects
@@ -480,6 +555,7 @@ class Config:
         *configs: Config,
         merge_strategy: MergeStrategy = MergeStrategy.REPLACE,
         key_strategies: dict[str, MergeStrategy] | None = None,
+        freeze: bool = False,
     ) -> Config:
         """
         Merge multiple :class:`Config` objects into one.
@@ -495,6 +571,8 @@ class Config:
         key_strategies:
             Per-key overrides keyed by dot-separated paths, e.g.
             ``{"server.allowed_hosts": MergeStrategy.ADDITIVE}``.
+        freeze:
+            Lock the returned Config against mutation.
 
         Returns
         -------
@@ -507,7 +585,7 @@ class Config:
         merged = deep_merge(
             *dicts, strategy=merge_strategy, key_strategies=key_strategies
         )
-        return cls(merged, sources)
+        return cls(merged, sources, freeze=freeze)
 
     # ------------------------------------------------------------------
     # Validation
@@ -588,14 +666,17 @@ class Config:
             with cfg.override({"app.debug": True, "database.pool_size": 1}):
                 assert cfg.get("app.debug") is True
             # original values restored here
+
+        Raises :class:`FrozenConfigError` if the config is frozen.
         """
+        self._check_frozen("override")
         backup = copy.deepcopy(self._data)
         try:
             for path, value in overrides.items():
                 _set_path(self._data, path, value)
             yield self
         finally:
-            self._data = backup
+            object.__setattr__(self, "_data", backup)
 
     # ------------------------------------------------------------------
     # Dict-like access
@@ -677,9 +758,10 @@ class Config:
         files: list[str] | list[Path],
         merge_strategy: MergeStrategy,
         key_strategies: dict[str, MergeStrategy] | None,
+        freeze: bool = False,
     ) -> Config:
         if not files:
-            return cls({}, [])
+            return cls({}, [], freeze=freeze)
 
         dicts: list[dict[str, Any]] = []
         sources: list[str] = []
@@ -692,7 +774,7 @@ class Config:
         merged = deep_merge(
             *dicts, strategy=merge_strategy, key_strategies=key_strategies
         )
-        return cls(merged, sources)
+        return cls(merged, sources, freeze=freeze)
 
     # ------------------------------------------------------------------
     # Dunder

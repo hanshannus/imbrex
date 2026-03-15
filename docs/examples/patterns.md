@@ -297,6 +297,52 @@ Full walkthrough: [Remote Secrets Example](remote-secrets.md).
 
 ---
 
+## Pattern 10 — Frozen production config
+
+Freeze the config at startup to catch accidental mutation bugs at runtime
+rather than silently corrupting state:
+
+```python
+# config.py
+from imbrex import Config
+
+cfg = Config.from_dir(
+    "config/",
+    extension="toml",
+    env="production",
+    freeze=True,   # ← locked at construction
+)
+settings = cfg.validate(AppSettings)
+```
+
+Any code that accidentally modifies the config will immediately raise
+`FrozenConfigError` — no silent data corruption.
+
+### Unfreezing for tests
+
+In test fixtures, temporarily unfreeze so `override()` works:
+
+```python
+import pytest
+from imbrex import Config
+
+@pytest.fixture()
+def app_config():
+    cfg = Config.from_dict({
+        "app": {"debug": False},
+        "database": {"url": "sqlite:///:memory:"},
+    }, freeze=True)
+    return cfg
+
+def test_debug_mode(app_config):
+    app_config.unfreeze()
+    with app_config.override({"app.debug": True}):
+        assert app_config.get("app.debug") is True
+    app_config.freeze()  # re-lock
+```
+
+---
+
 ## Anti-patterns to avoid
 
 !!! danger "Don't commit secrets"

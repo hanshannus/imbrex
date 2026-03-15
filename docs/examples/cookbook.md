@@ -201,3 +201,68 @@ cfg = Config.from_dir(
     env="production",
 )
 ```
+
+## Access nested values with dot-paths
+
+```python
+cfg = Config.from_dict({
+    "database": {"url": "sqlite:///app.db", "pool_size": 10},
+    "server": {"allowed_hosts": ["myapp.com", "localhost"]},
+})
+
+cfg.get("database.pool_size")       # 10
+cfg.get("server.allowed_hosts.0")   # "myapp.com"
+cfg.get("missing.key", "fallback")  # "fallback"
+cfg.get("missing.key")              # raises KeyError
+```
+
+## Temporarily override values in tests
+
+```python
+from imbrex import Config
+
+cfg = Config.from_dict({"app": {"debug": False, "workers": 4}})
+
+with cfg.override({"app.debug": True, "app.workers": 1}):
+    assert cfg.get("app.debug") is True
+    assert cfg.get("app.workers") == 1
+
+# Automatically restored
+assert cfg.get("app.debug") is False
+```
+
+## Freeze a config to prevent accidental mutation
+
+```python
+cfg = Config.from_dir("config/", extension="toml", env="production", freeze=True)
+
+# Read access works
+print(cfg.get("database.url"))
+
+# Mutation raises FrozenConfigError
+from imbrex import FrozenConfigError
+try:
+    with cfg.override({"app.debug": True}):
+        pass
+except FrozenConfigError:
+    print("Config is frozen — mutation blocked!")
+```
+
+## Freeze via method chaining
+
+```python
+cfg = Config.from_dict({"key": "value"}).freeze()
+assert cfg.is_frozen is True
+```
+
+## Unfreeze for test overrides
+
+```python
+cfg = Config.from_dict({"app": {"debug": False}}, freeze=True)
+cfg.unfreeze()
+
+with cfg.override({"app.debug": True}):
+    assert cfg.get("app.debug") is True
+
+cfg.freeze()  # re-lock after test
+

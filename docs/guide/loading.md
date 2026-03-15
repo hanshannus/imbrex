@@ -166,6 +166,132 @@ list(cfg)                       # iterate top-level keys
 cfg.to_dict()                   # deep copy as a plain dict
 ```
 
+### Dot-path access with `get()`
+
+`Config.get()` accepts dot-separated paths to reach deeply nested values,
+including list indices:
+
+```python
+cfg = Config.from_dict({
+    "database": {"url": "sqlite:///app.db", "pool_size": 10},
+    "server": {
+        "host": "localhost",
+        "allowed_hosts": ["myapp.com", "localhost"],
+    },
+})
+
+cfg.get("database.pool_size")       # 10
+cfg.get("server.allowed_hosts.0")   # "myapp.com"
+cfg.get("server")                   # full dict
+cfg.get("missing.key", "fallback")  # "fallback"
+cfg.get("missing.key")              # raises KeyError
+```
+
+Falsy values (`None`, `False`, `0`, `""`) are returned correctly — the
+default is only used when the path does not exist at all:
+
+```python
+cfg = Config.from_dict({"flag": False, "count": 0})
+cfg.get("flag", True)    # False  (not replaced)
+cfg.get("count", 99)     # 0      (not replaced)
+```
+
+## Temporary overrides
+
+Use the `override()` context manager to temporarily patch values — ideal for
+tests:
+
+```python
+cfg = Config.from_dict({"app": {"debug": False, "workers": 4}})
+
+with cfg.override({"app.debug": True, "app.workers": 1}):
+    assert cfg.get("app.debug") is True
+    assert cfg.get("app.workers") == 1
+
+# Original values are automatically restored
+assert cfg.get("app.debug") is False
+assert cfg.get("app.workers") == 4
+```
+
+Overrides are always restored, even when an exception occurs inside the
+`with` block.
+
+!!! note "Override creates new keys"
+
+    You can inject keys that didn't exist before:
+
+    ```python
+    with cfg.override({"app.new_key": "injected"}):
+        assert cfg.get("app.new_key") == "injected"
+    # key is removed on exit
+    ```
+
+## Frozen / immutable configs
+
+Lock a `Config` instance so any mutation attempt raises `FrozenConfigError`
+at runtime.  This prevents accidental writes in production code.
+
+### Freeze at construction
+
+Every factory method accepts `freeze=True`:
+
+```python
+cfg = Config.from_dir("config/", extension="toml", env="production", freeze=True)
+cfg = Config.from_toml("settings.toml", freeze=True)
+cfg = Config.from_dict({"key": "value"}, freeze=True)
+cfg = Config.from_env(prefix="APP_", freeze=True)
+cfg = Config.merge(base, env, freeze=True)
+```
+
+### Freeze after construction
+
+```python
+cfg = Config.from_dir("config/", extension="toml")
+# ... do any setup mutations ...
+cfg.freeze()  # returns self, so chaining works:
+cfg = Config.from_dict({"key": "value"}).freeze()
+```
+
+### What's blocked?
+
+```python
+from imbrex import FrozenConfigError
+
+cfg = Config.from_dict({"app": {"debug": False}}, freeze=True)
+
+# override() is blocked
+with cfg.override({"app.debug": True}):  # ❌ FrozenConfigError
+    ...
+
+# Direct _data assignment is blocked
+cfg._data = {}  # ❌ FrozenConfigError
+```
+
+### Read access is unaffected
+
+All read operations work normally on a frozen config:
+
+```python
+cfg.get("app.debug")        # ✅
+cfg["app"]                  # ✅
+"app" in cfg                # ✅
+cfg.to_dict()               # ✅ (returns a deep copy)
+cfg.validate(MySettings)    # ✅
+cfg.data                    # ✅
+cfg.sources                 # ✅
+```
+
+### Unfreeze
+
+If you need to mutate again (e.g. in tests), call `unfreeze()`:
+
+```python
+cfg.unfreeze()
+with cfg.override({"app.debug": True}):
+    ...  # works now
+cfg.freeze()  # re-lock
+```
+
 ### Source tracking
 
 Every `Config` records where its data came from:

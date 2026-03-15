@@ -1,9 +1,11 @@
 # `Config`
 
-The central class in **imbrex** — an immutable, merged configuration container.
+The central class in **imbrex** — a merged configuration container with
+optional immutability via `freeze()`.
 
 All loading is done through classmethods; the resulting `Config` object provides
-dict-like read access, source tracking, and Pydantic validation.
+dict-like read access, dot-path traversal, source tracking, temporary overrides,
+and Pydantic validation.
 
 ## Class reference
 
@@ -14,6 +16,7 @@ dict-like read access, source tracking, and Pydantic validation.
         - __init__
         - data
         - sources
+        - is_frozen
         - from_toml
         - from_yaml
         - from_json
@@ -25,6 +28,9 @@ dict-like read access, source tracking, and Pydantic validation.
         - merge
         - validate
         - get
+        - override
+        - freeze
+        - unfreeze
         - __getitem__
         - __contains__
         - __len__

@@ -98,7 +98,29 @@ If any required field is missing or has the wrong type, imbrex raises
 [`ConfigValidationError`](../api/exceptions.md) with the full Pydantic
 error details.
 
-## 5. What's next?
+## 5. Freeze the config (optional)
+
+Lock the config to prevent accidental mutation at runtime:
+
+```python
+cfg = Config.from_dir("config/", extension="toml", env="production", freeze=True)
+
+# Read access works normally
+print(cfg.get("database.url"))
+
+# Any mutation attempt raises FrozenConfigError
+cfg.override({"app.debug": True})  # ❌ FrozenConfigError
+```
+
+Or freeze after construction:
+
+```python
+cfg = Config.from_dir("config/", extension="toml", env="production")
+# ... modify if needed ...
+cfg.freeze()
+```
+
+## 6. What's next?
 
 | Topic | Description |
 |---|---|

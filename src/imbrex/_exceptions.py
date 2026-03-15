@@ -62,3 +62,14 @@ class SecretProviderError(ImbrexError):
         self.cause = cause
         super().__init__(f"Secret provider '{provider}' failed: {cause}")
 
+
+class FrozenConfigError(ImbrexError, AttributeError):
+    """Raised when mutating a frozen Config instance."""
+
+    def __init__(self, operation: str = "mutate") -> None:
+        super().__init__(
+            f"Cannot {operation} a frozen Config. "
+            "Use .unfreeze() or create a new Config instead."
+        )
+
+

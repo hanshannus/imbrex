@@ -39,6 +39,9 @@ handles all of this with a single, composable API:
 - **Automatic priority ordering** — `defaults → base → dev → staging → prod → local → secrets`.
 - **Flexible merge strategies** — replace, additive (list concatenation), or type-safe.
 - **Pydantic validation** — validate and get fully-typed settings objects.
+- **Dot-path access** — `cfg.get("database.pool_size")` traverses nested dicts and lists.
+- **Temporary overrides** — `cfg.override({"app.debug": True})` context manager for tests.
+- **Frozen configs** — `cfg.freeze()` or `freeze=True` to lock a Config against accidental mutation.
 - **Environment variables** — `APP_DATABASE__URL` becomes `database.url` automatically.
 - **Remote secrets** — auto-detect `secrets.*` descriptors for AWS/Azure/GCP in `from_dir()`.
 - **Zero config** — works out of the box with sensible defaults, customisable when needed.
@@ -78,6 +81,9 @@ print(settings.database.pool_size) # 20
 | Merge Config objects | `Config.merge(base, env, secrets)` |
 | Pydantic validation | `cfg.validate(MySettings)` |
 | Dict-like access | `cfg["key"]`, `cfg.get("key")`, `"key" in cfg` |
+| Dot-path access | `cfg.get("database.pool_size")`, `cfg.get("items.0")` |
+| Temporary overrides | `with cfg.override({"app.debug": True}): ...` |
+| Frozen / immutable | `cfg.freeze()`, `Config.from_dict(..., freeze=True)` |
 
 ---
 
