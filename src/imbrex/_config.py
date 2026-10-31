@@ -36,7 +36,7 @@ from __future__ import annotations
 import copy
 import os
 import threading
-from collections.abc import Iterator, Mapping
+from collections.abc import Callable, Iterator, Mapping
 from contextlib import contextmanager
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, TypeVar
@@ -48,6 +48,7 @@ from imbrex._exceptions import (
     ConfigFileNotFoundError,
     ConfigValidationError,
     FrozenConfigError,
+    ImbrexError,
     UnsupportedFormatError,
 )
 from imbrex._explain import Explanation, build_explanation
@@ -60,6 +61,7 @@ from imbrex._parsers import (
 )
 from imbrex._priority import DEFAULT_PRIORITY, sort_paths
 from imbrex._redact import redact as _redact
+from imbrex._secrets_cache import clear_secrets_cache
 from imbrex._utils import _MISSING, _get_path, _set_path, is_secret_descriptor
 
 if TYPE_CHECKING:
@@ -71,12 +73,13 @@ T = TypeVar("T", bound="BaseModel")
 
 
 class Config:
-    __slots__ = ("_data", "_sources", "_frozen", "_layers")
+    __slots__ = ("_data", "_sources", "_frozen", "_layers", "_reload")
 
     _data: dict[str, Any]
     _sources: list[str]
     _frozen: bool
     _layers: list[tuple[str, dict[str, Any]]]
+    _reload: Callable[[bool], Config] | None
 
     def __init__(
         self,
@@ -109,6 +112,7 @@ class Config:
         object.__setattr__(self, "_sources", sources)
         object.__setattr__(self, "_frozen", freeze)
         object.__setattr__(self, "_layers", layers or [])
+        object.__setattr__(self, "_reload", None)
 
     # ------------------------------------------------------------------
     # Freeze / unfreeze
@@ -326,6 +330,7 @@ class Config:
         merge_strategy: MergeStrategy = MergeStrategy.REPLACE,
         key_strategies: dict[str, MergeStrategy] | None = None,
         freeze: bool = False,
+        secrets_ttl: float | None = None,
     ) -> Config:
         """
         Discover and load all config files in *directory*.
@@ -357,6 +362,9 @@ class Config:
             Default merge strategy.
         key_strategies: dict[str, MergeStrategy] | None
             Per-key merge strategy overrides.
+        secrets_ttl: float | None (default: None)
+            Reuse fetched remote secrets for this many seconds.  ``None`` (or
+            ``0``) fetches on every call.  See :func:`imbrex.clear_secrets_cache`.
         freeze: bool (default: False)
             Lock the returned Config against mutation.
 
@@ -380,6 +388,26 @@ class Config:
             Instance of ``Config`` containing the merged configuration.
 
         """
+
+        def attach(cfg: Config) -> Config:
+            def rebuild(refresh_secrets: bool) -> Config:
+                if refresh_secrets:
+                    clear_secrets_cache()
+                return cls.from_dir(
+                    directory,
+                    extension=extension,
+                    env=env,
+                    order=order,
+                    recursive=recursive,
+                    priority_table=priority_table,
+                    merge_strategy=merge_strategy,
+                    key_strategies=key_strategies,
+                    freeze=freeze,
+                    secrets_ttl=secrets_ttl,
+                )
+
+            return cfg._with_reload(rebuild)
+
         d = Path(directory)
         if not d.exists():
             raise ConfigFileNotFoundError(d)
@@ -430,7 +458,7 @@ class Config:
         )
 
         if not descriptor_paths:
-            return base_config
+            return attach(base_config)
 
         try:
             from imbrex._secrets import load_remote_secrets
@@ -445,9 +473,10 @@ class Config:
             descriptor_paths,
             merge_strategy=merge_strategy,
             key_strategies=key_strategies,
+            cache_ttl=secrets_ttl,
         )
         if not secret_data:
-            return base_config
+            return attach(base_config)
 
         merged = deep_merge(
             base_config.data,
@@ -455,11 +484,16 @@ class Config:
             strategy=merge_strategy,
             key_strategies=key_strategies,
         )
-        return cls(
-            merged,
-            [*base_config.sources, *secret_sources],
-            freeze=freeze,
-            layers=[*base_config._layers, (", ".join(secret_sources), secret_data)],
+        return attach(
+            cls(
+                merged,
+                [*base_config.sources, *secret_sources],
+                freeze=freeze,
+                layers=[
+                    *base_config._layers,
+                    (", ".join(secret_sources), secret_data),
+                ],
+            )
         )
 
     # ------------------------------------------------------------------
@@ -918,6 +952,31 @@ class Config:
         if not hits:
             raise KeyError(path)
         return build_explanation(path, hits)
+
+    def _with_reload(self, rebuild: Callable[[bool], Config]) -> Config:
+        object.__setattr__(self, "_reload", rebuild)
+        return self
+
+    def reload(self, *, refresh_secrets: bool = True) -> Config:
+        """
+        Rebuild this config from the same inputs and return the new instance.
+
+        Files, ``.env`` and environment variables are read again, and remote
+        secrets are fetched fresh (pass ``refresh_secrets=False`` to let the
+        ``secrets_ttl`` cache answer).  Nothing is mutated, so swap your
+        reference: ``cfg = cfg.reload()``.  If anything fails the exception
+        propagates and the old config stays valid.
+
+        Only configs built by :meth:`from_dir` or :func:`imbrex.load_config`
+        can be reloaded; others (``from_dict``, ``merge``, ``interpolate``,
+        ``with_overrides`` ...) raise :class:`ImbrexError`.
+        """
+        if self._reload is None:
+            raise ImbrexError(
+                "This Config cannot be reloaded: only Config.from_dir() and "
+                "imbrex.load_config() results remember how they were built."
+            )
+        return self._reload(refresh_secrets)
 
     def interpolate(self, *, env: Mapping[str, str] | None = None) -> Config:
         """

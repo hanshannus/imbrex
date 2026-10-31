@@ -11,6 +11,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
+from imbrex import _secrets_cache as _cache
 from imbrex._exceptions import ConfigSecretDescriptorError, SecretProviderError
 from imbrex._merge import MergeStrategy, deep_merge
 from imbrex._parsers import parse_file
@@ -257,8 +258,14 @@ def load_remote_secrets(
     provider_fetchers: dict[str, ProviderFetcher] | None = None,
     merge_strategy: MergeStrategy = MergeStrategy.REPLACE,
     key_strategies: dict[str, MergeStrategy] | None = None,
+    cache_ttl: float | None = None,
 ) -> tuple[dict[str, Any], list[str]]:
-    """Load and fetch secrets from descriptor files and return merged data + sources."""
+    """
+    Load and fetch secrets from descriptor files and return merged data + sources.
+
+    With a positive *cache_ttl* (seconds) each provider's result is reused
+    until it is that old.  Failed fetches are never cached.
+    """
     if not descriptor_paths:
         return {}, []
 
@@ -282,11 +289,31 @@ def load_remote_secrets(
     if not plans:
         return {}, []
 
-    fetched = _run_async(_fetch_all(plans, provider_fetchers=fetchers))
+    ttl = cache_ttl if cache_ttl and cache_ttl > 0 else None
+    keys = [f"{name}:{cfg.model_dump_json()}" for name, cfg in plans]
+    results: list[tuple[dict[str, Any], str] | None] = [None] * len(plans)
+    misses: list[int] = []
+    for i, (name, _) in enumerate(plans):
+        hit = _cache.get(keys[i], ttl) if ttl else None
+        if hit is None:
+            misses.append(i)
+        else:
+            results[i] = (hit, name)
+
+    if misses:
+        fetched = _run_async(
+            _fetch_all([plans[i] for i in misses], provider_fetchers=fetchers)
+        )
+        for i, (data, provider) in zip(misses, fetched, strict=True):
+            results[i] = (data, provider)
+            if ttl:
+                _cache.put(keys[i], data)
 
     dicts: list[dict[str, Any]] = []
     sources: list[str] = []
-    for data, provider in fetched:
+    for item in results:
+        assert item is not None
+        data, provider = item
         dicts.append(data)
         sources.append(f"<secret:{provider}>")
 

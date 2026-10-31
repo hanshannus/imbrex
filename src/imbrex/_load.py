@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any, TypeVar, overload
 from imbrex._config import Config
 from imbrex._exceptions import ConfigFileNotFoundError, ImbrexError
 from imbrex._parsers import SUPPORTED_FORMATS
+from imbrex._secrets_cache import clear_secrets_cache
 
 if TYPE_CHECKING:
     from pydantic import BaseModel
@@ -41,6 +42,7 @@ def load_config(
     extension: str | None = None,
     overrides: dict[str, Any] | None = None,
     interpolate: bool = True,
+    secrets_ttl: float | None = None,
 ) -> Config:
     """
     Build a :class:`Config` from every standard source, in a fixed order.
@@ -71,6 +73,9 @@ def load_config(
     interpolate: bool
         Resolve ``${key}`` / ``${env:VAR}`` references after merging
         (see :meth:`Config.interpolate`).  Default ``True``.
+    secrets_ttl: float | None
+        Reuse fetched remote secrets for this many seconds (default: always
+        fetch).  The result can be rebuilt with :meth:`Config.reload`.
 
     """
     layers: list[Config] = []
@@ -80,7 +85,12 @@ def load_config(
         if not d.is_dir():
             raise ConfigFileNotFoundError(d)
         layers.append(
-            Config.from_dir(d, extension=extension or _detect_extension(d), env=env)
+            Config.from_dir(
+                d,
+                extension=extension or _detect_extension(d),
+                env=env,
+                secrets_ttl=secrets_ttl,
+            )
         )
     if dotenv is not None:
         layers.append(
@@ -92,7 +102,24 @@ def load_config(
         layers.append(Config.from_dict(overrides))
 
     cfg = Config.merge(*layers)
-    return cfg.interpolate() if interpolate else cfg
+    if interpolate:
+        cfg = cfg.interpolate()
+
+    def rebuild(refresh_secrets: bool) -> Config:
+        if refresh_secrets:
+            clear_secrets_cache()
+        return load_config(
+            directory,
+            env=env,
+            env_prefix=env_prefix,
+            dotenv=dotenv,
+            extension=extension,
+            overrides=overrides,
+            interpolate=interpolate,
+            secrets_ttl=secrets_ttl,
+        )
+
+    return cfg._with_reload(rebuild)
 
 
 @overload
