@@ -12,6 +12,7 @@ from imbrex import (
     Config,
     load,
     load_config,
+    clear_secrets_cache,
     Explanation,
     MergeStrategy,
     DEFAULT_PRIORITY,

@@ -2,6 +2,7 @@
 
 ### Feat
 
+- add opt-in `secrets_ttl` cache for remote secrets, `imbrex.clear_secrets_cache()` and `Config.reload()`
 - add `Config.with_overrides()`: a modified copy, safe for concurrent code and frozen configs
 - add `${key}` / `${env:VAR:-default}` interpolation via `Config.interpolate()` (default in `load()`), with `ConfigInterpolationError`
 - add `imbrex` CLI: `show`, `explain`, `validate`, `diff` (also `python -m imbrex`)

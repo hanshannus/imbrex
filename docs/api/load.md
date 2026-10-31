@@ -8,6 +8,10 @@
 
 ::: imbrex.load_config
 
+## `clear_secrets_cache`
+
+::: imbrex.clear_secrets_cache
+
 ## `Explanation`
 
 ::: imbrex.Explanation

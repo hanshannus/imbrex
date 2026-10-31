@@ -63,6 +63,7 @@ APP_ALLOWED_HOSTS=["a.example.com", "b.example.com"]
 | `dotenv` | `".env"` | Dotenv file. A missing file is ignored. `None` disables it. |
 | `extension` | auto | `"toml"`, `"yaml"` or `"json"`. |
 | `overrides` | `None` | Highest-priority values, for example from CLI flags. |
+| `secrets_ttl` | `None` | Cache fetched [remote secrets](remote-secrets.md#caching-and-refreshing) for this many seconds. |
 | `interpolate` | `True` | Resolve [`${...}` references](interpolation.md) after merging. |
 
 ### File format detection
@@ -81,6 +82,13 @@ cfg = imbrex.load_config("config/", env="production", env_prefix="APP_")
 print(cfg.explain("database.url"))
 settings = cfg.validate(Settings)
 ```
+
+## Reloading
+
+`load_config()` results remember how they were built:
+`cfg = cfg.reload()` re-reads files, `.env`, environment variables and
+secrets and returns a new `Config`. See
+[Caching and refreshing](remote-secrets.md#caching-and-refreshing).
 
 ## Building blocks
 

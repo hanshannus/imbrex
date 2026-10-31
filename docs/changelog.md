@@ -20,6 +20,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   `Config.interpolate()`, applied by default in `load()`.
 - **`Config.with_overrides()`** — a modified copy; safe for concurrent code
   and for frozen configs.
+- **Secret caching and `Config.reload()`** — opt-in `secrets_ttl`,
+  `clear_secrets_cache()`, and a reload that rebuilds a config from the same
+  inputs without mutating the old one.
 - **`imbrex` command line** — `show`, `explain`, `validate` and `diff`.
 - `py.typed` marker and a test CI workflow.
 
