@@ -30,6 +30,9 @@ Quick start::
     print(settings.database_url)
 """
 
+from importlib.metadata import PackageNotFoundError
+from importlib.metadata import version as _pkg_version
+
 from imbrex._config import Config
 from imbrex._exceptions import (
     ConfigFileNotFoundError,
@@ -62,4 +65,7 @@ __all__ = [
     "UnsupportedFormatError",
 ]
 
-__version__ = "0.1.1"
+try:
+    __version__ = _pkg_version("imbrex")
+except PackageNotFoundError:  # pragma: no cover - running from a bare checkout
+    __version__ = "0+unknown"

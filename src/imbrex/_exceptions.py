@@ -39,10 +39,16 @@ class ConfigParseError(ImbrexError):
 class ConfigValidationError(ImbrexError):
     """Raised when the merged config fails schema validation."""
 
-    def __init__(self, cause: Exception, data: dict[str, Any] | None = None) -> None:
+    def __init__(
+        self,
+        cause: Exception,
+        data: dict[str, Any] | None = None,
+        summary: str | None = None,
+    ) -> None:
         self.cause = cause
         self.data = data
-        super().__init__(f"Validation failed: {cause}")
+        detail = summary if summary is not None else str(cause)
+        super().__init__(f"Validation failed: {detail}")
 
 
 class ConfigSecretDescriptorError(ImbrexError):

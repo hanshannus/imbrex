@@ -55,6 +55,7 @@ from imbrex._parsers import (
     parse_string,
 )
 from imbrex._priority import DEFAULT_PRIORITY, sort_paths
+from imbrex._redact import redact as _redact
 from imbrex._secrets import is_secret_descriptor, load_remote_secrets
 from imbrex._utils import _MISSING, _get_path, _set_path
 
@@ -654,13 +655,19 @@ class Config:
             try:
                 return schema.model_validate(self._data)
             except ValidationError as exc:
-                raise ConfigValidationError(exc, self._data) from exc
+                lines = [
+                    f"  {'.'.join(str(p) for p in e['loc']) or '<root>'}: {e['msg']}"
+                    for e in exc.errors(include_input=False, include_url=False)
+                ]
+                raise ConfigValidationError(
+                    exc, _redact(self._data), "\n" + "\n".join(lines)
+                ) from exc
 
         # Generic fallback: call schema(**data)
         try:
             return schema(**self._data)
         except Exception as exc:
-            raise ConfigValidationError(exc, self._data) from exc
+            raise ConfigValidationError(exc, _redact(self._data)) from exc
 
     # ------------------------------------------------------------------
     # Context manager for temporary overrides
@@ -755,10 +762,19 @@ class Config:
     def __iter__(self) -> Iterator[Any]:
         return iter(self._data)
 
-    def to_dict(self) -> dict[str, Any]:
-        """Return a deep copy of the merged config as a plain dict."""
+    def to_dict(self, *, redact: bool = False) -> dict[str, Any]:
+        """
+        Return a deep copy of the merged config as a plain dict.
+
+        With ``redact=True`` values under sensitive-looking keys
+        (``password``, ``*_token``, ``api_key``, ...) are replaced by ``***``,
+        which makes the result safe to log or print.
+        """
         import copy
 
+        if redact:
+            out: dict[str, Any] = _redact(self._data)
+            return out
         return copy.deepcopy(self._data)
 
     # ------------------------------------------------------------------
