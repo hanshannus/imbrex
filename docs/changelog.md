@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## Unreleased
+## 0.3.0 — (2026-10-31)
 
 ### Added
 
@@ -14,16 +14,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **`Config.from_dotenv()`** and **`from_env(coerce=True)`**.
 - **Attribute access** (`cfg.database.url`) and **`Config.explain()`** for
   per-key provenance.
-- **Secret redaction** — `to_dict(redact=True)`; validation errors and
-  `ConfigValidationError.data` no longer expose values.
 - **Interpolation** — `${key}`, `${env:VAR}`, `${...:-default}` and `$${` escape;
   `Config.interpolate()`, applied by default in `load()`.
-- **`Config.with_overrides()`** — a modified copy; safe for concurrent code
-  and for frozen configs.
+- **Secret redaction** — `to_dict(redact=True)`; validation errors and
+  `ConfigValidationError.data` no longer expose values.
+- **Remote secrets** — `from_dir()` detects `secrets.*` descriptor files and
+  fetches values from AWS, Azure and GCP.
 - **Secret caching and `Config.reload()`** — opt-in `secrets_ttl`,
   `clear_secrets_cache()`, and a reload that rebuilds a config from the same
   inputs without mutating the old one.
 - **`imbrex` command line** — `show`, `explain`, `validate` and `diff`.
+- **Frozen / immutable configs** — `Config.freeze()`, `Config.unfreeze()`,
+  and `Config.is_frozen` property to lock a Config instance against mutation.
+- **`freeze=True` parameter** on all factory classmethods (`from_toml`,
+  `from_yaml`, `from_json`, `from_file`, `from_dir`, `from_dict`,
+  `from_string`, `from_env`, `merge`) to freeze at construction time.
+- **`FrozenConfigError`** — new exception raised when mutating a frozen Config.
+  Inherits from both `ImbrexError` and `AttributeError`.
+- **`Config.get()` dot-path access** — traverse nested dicts and list indices
+  with `cfg.get("database.pool_size")` or `cfg.get("items.0")`.
+- **`Config.override()` context manager** — temporarily patch dot-path keys
+  for testing, with automatic restoration on exit.
+- **`Config.with_overrides()`** — a modified copy; safe for concurrent code
+  and for frozen configs.
+- **`Config.__getitem__`** — bracket access with `cfg["database.pool_size"]`.
+- **`Config.__contains__`** — membership test with `"database.pool_size" in cfg`.
 - `py.typed` marker and a test CI workflow.
 
 ### Changed
@@ -38,24 +53,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `import imbrex` no longer requires Pydantic; it is only needed for
   `validate()` with a model, `load()` and remote secrets.
 - `__version__` is read from the package metadata.
-
-## 0.3.0 — (2026-03-15)
-
-### Added
-
-- **Frozen / immutable configs** — `Config.freeze()`, `Config.unfreeze()`,
-  and `Config.is_frozen` property to lock a Config instance against mutation.
-- **`freeze=True` parameter** on all factory classmethods (`from_toml`,
-  `from_yaml`, `from_json`, `from_file`, `from_dir`, `from_dict`,
-  `from_string`, `from_env`, `merge`) to freeze at construction time.
-- **`FrozenConfigError`** — new exception raised when mutating a frozen Config.
-  Inherits from both `ImbrexError` and `AttributeError`.
-- **`Config.get()` dot-path access** — traverse nested dicts and list indices
-  with `cfg.get("database.pool_size")` or `cfg.get("items.0")`.
-- **`Config.override()` context manager** — temporarily patch dot-path keys
-  for testing, with automatic restoration on exit.
-- **`Config.__getitem__`** — bracket access with `cfg["database.pool_size"]`.
-- **`Config.__contains__`** — membership test with `"database.pool_size" in cfg`.
 
 ## 0.2.1 — (2026-03-14)
 

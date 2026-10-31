@@ -47,7 +47,7 @@ pip install -e ".[full]"
 ```python
 >>> import imbrex
 >>> imbrex.__version__
-'0.2.1'
+'0.3.0'
 >>> from imbrex import Config
 >>> cfg = Config.from_dict({"hello": "world"})
 >>> cfg["hello"]
