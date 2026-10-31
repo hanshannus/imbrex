@@ -35,6 +35,7 @@ from __future__ import annotations
 
 import copy
 import os
+import threading
 from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
 from pathlib import Path
@@ -63,6 +64,8 @@ from imbrex._utils import _MISSING, _get_path, _set_path, is_secret_descriptor
 
 if TYPE_CHECKING:
     from pydantic import BaseModel
+
+_OVERRIDE_LOCK = threading.RLock()
 
 T = TypeVar("T", bound="BaseModel")
 
@@ -754,6 +757,14 @@ class Config:
                 assert cfg.get("app.debug") is True
             # original values restored here
 
+        The patch is applied to *this* object, so every reader of it sees
+        the change, in every thread.  Because of that, overrides are
+        serialised: while one thread is inside ``override()``, another
+        thread entering it waits.  Nesting in one thread works.  The lock
+        does not protect asyncio tasks that interleave in a single thread;
+        for code that runs concurrently use :meth:`with_overrides`, which
+        returns a modified copy and shares no state.
+
         Parameters
         ----------
         overrides: dict[str, Any]
@@ -763,13 +774,38 @@ class Config:
 
         """
         self._check_frozen("override")
-        backup = copy.deepcopy(self._data)
-        try:
-            for path, value in overrides.items():
-                _set_path(self._data, path, value)
-            yield self
-        finally:
-            object.__setattr__(self, "_data", backup)
+        with _OVERRIDE_LOCK:
+            backup = copy.deepcopy(self._data)
+            try:
+                for path, value in overrides.items():
+                    _set_path(self._data, path, value)
+                yield self
+            finally:
+                object.__setattr__(self, "_data", backup)
+
+    def with_overrides(self, overrides: Mapping[str, Any]) -> Config:
+        """
+        Return a copy of this config with dot-path *overrides* applied.
+
+        Unlike :meth:`override` nothing is mutated, so it is safe to call
+        from concurrent threads or tasks, and it also works on frozen
+        configs (the copy stays frozen)::
+
+            request_cfg = cfg.with_overrides({"app.debug": True})
+
+        The overrides appear as a final ``<overrides>`` layer, so
+        :meth:`explain` attributes those values to it.
+        """
+        data = copy.deepcopy(self._data)
+        layer: dict[str, Any] = {}
+        for path, value in overrides.items():
+            _set_path(data, path, copy.deepcopy(value))
+            _set_path(layer, path, copy.deepcopy(value))
+        sources, layers = list(self._sources), list(self._layers)
+        if overrides:
+            sources.append("<overrides>")
+            layers.append(("<overrides>", layer))
+        return Config(data, sources, freeze=self._frozen, layers=layers)
 
     # ------------------------------------------------------------------
     # Dict-like access
