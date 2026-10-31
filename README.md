@@ -176,7 +176,7 @@ Full documentation is available at
 ### Build docs locally
 
 ```bash
-uv sync --group docs
+uv sync
 uv run zensical serve        # http://127.0.0.1:8000
 ```
 

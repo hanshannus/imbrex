@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Added
+
+- **`imbrex.load()` / `load_config()`** — files, `.env`, environment variables
+  and overrides in one call with a fixed precedence.
+- **`Config.from_dotenv()`** and **`from_env(coerce=True)`**.
+- **Attribute access** (`cfg.database.url`) and **`Config.explain()`** for
+  per-key provenance.
+- **Secret redaction** — `to_dict(redact=True)`; validation errors and
+  `ConfigValidationError.data` no longer expose values.
+- `py.typed` marker and a test CI workflow.
+
+### Changed
+
+- `ConfigValidationError` messages now list key paths and sources instead of
+  Pydantic's raw output.
+
+### Fixed
+
+- `import imbrex` no longer requires Pydantic; it is only needed for
+  `validate()` with a model, `load()` and remote secrets.
+- `__version__` is read from the package metadata.
+
 ## 0.3.0 — (2026-03-15)
 
 ### Added

@@ -98,6 +98,19 @@ If any required field is missing or has the wrong type, imbrex raises
 [`ConfigValidationError`](../api/exceptions.md) with the full Pydantic
 error details.
 
+### The shortcut
+
+Steps 3 and 4 collapse into one call, which also layers in a `.env` file and
+`APP_*` environment variables:
+
+```python
+import imbrex
+
+settings = imbrex.load(AppSettings, "config/", env="production", env_prefix="APP_")
+```
+
+See [One-Call Loading](load.md) for the precedence rules.
+
 ## 5. Freeze the config (optional)
 
 Lock the config to prevent accidental mutation at runtime:
@@ -124,6 +137,8 @@ cfg.freeze()
 
 | Topic | Description |
 |---|---|
+| [One-Call Loading](load.md) | `imbrex.load()`: files + `.env` + env vars → typed settings |
+| [Provenance & Safe Output](provenance.md) | `explain()`, attribute access, secret redaction |
 | [Loading Configuration](loading.md) | All the ways to load config: files, strings, dicts, env vars |
 | [Directory & Priority](directory-priority.md) | How the automatic tier ordering works |
 | [Merge Strategies](merge-strategies.md) | REPLACE vs ADDITIVE vs TYPESAFE |

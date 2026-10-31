@@ -139,7 +139,7 @@ uv sync
 uv sync --all-groups
 
 # Install only a specific group
-uv sync --group docs
+uv sync
 ```
 
 ### Adding dependencies
@@ -477,7 +477,7 @@ reference from Python docstrings.
 
 ```bash
 # Install docs dependencies (if not already synced)
-uv sync --group docs
+uv sync
 
 # Serve with live reload at http://127.0.0.1:8000
 uv run mkdocs serve

@@ -92,7 +92,8 @@ print(settings.workers) # 4     (str → int)
 
 When validation fails, imbrex raises
 [`ConfigValidationError`](../api/exceptions.md) with the original Pydantic
-error and the raw data:
+error and the (redacted) data.  The message lists each failing key path and
+the source that supplied the value, but never the value itself:
 
 ```python
 from imbrex import Config
@@ -103,9 +104,9 @@ cfg = Config.from_dict({"debug": True})  # missing required 'name'
 try:
     settings = cfg.validate(Settings)
 except ConfigValidationError as exc:
-    print(exc)          # "Validation failed: ..."
+    print(exc)          # "Validation failed:\n  name: Field required"
     print(exc.cause)    # Original Pydantic ValidationError
-    print(exc.data)     # {"debug": True}
+    print(exc.data)     # {"debug": True}  (sensitive keys shown as "***")
 ```
 
 ### Common validation errors

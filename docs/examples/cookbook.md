@@ -102,7 +102,7 @@ try:
     settings = cfg.validate(Settings)
 except ConfigValidationError as exc:
     print(f"Config is invalid: {exc}")
-    print(f"Raw data: {exc.data}")
+    print(f"Data (secrets masked): {exc.data}")
     print(f"Pydantic errors: {exc.cause}")
 ```
 

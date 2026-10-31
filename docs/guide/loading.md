@@ -138,6 +138,13 @@ cfg = Config.from_env(prefix="APP_", separator="_")
 # APP_DB_URL → {"db": {"url": "..."}}
 ```
 
+### `.env` files and one-call loading
+
+`Config.from_dotenv(".env", prefix="APP_")` reads a dotenv file with the same
+naming rules, and `from_env(coerce=True)` converts `true`, `20` or `[1, 2]` to
+Python values.  To combine files, `.env` and the environment in one call, see
+[One-Call Loading](load.md).
+
 ## Merging Config objects
 
 Combine independently-loaded `Config` objects:

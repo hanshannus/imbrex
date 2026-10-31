@@ -47,7 +47,7 @@ pip install -e ".[full]"
 ```python
 >>> import imbrex
 >>> imbrex.__version__
-'0.1.0'
+'0.2.1'
 >>> from imbrex import Config
 >>> cfg = Config.from_dict({"hello": "world"})
 >>> cfg["hello"]
@@ -58,11 +58,16 @@ pip install -e ".[full]"
 
 | Extra | Installs | Purpose |
 |---|---|---|
-| `pydantic` | `pydantic ≥ 2.0` | Schema validation via `cfg.validate(MyModel)` |
-| `full` | All of the above | Everything in one command |
+| `pydantic` | `pydantic ≥ 2.0` | Schema validation via `cfg.validate(MyModel)` and `imbrex.load()` |
+| `aws` / `azure` / `gcp` | Provider SDKs | [Remote secrets](guide/remote-secrets.md) (also need `pydantic`) |
+| `secrets` | All three provider SDKs | Remote secrets from any provider |
+| `full` | Everything above | Everything in one command |
 
 !!! tip "Pydantic is optional"
 
     **imbrex** works perfectly without Pydantic.  You can load, merge, and
     access configuration as plain dicts.  Pydantic is only needed when you
-    call `Config.validate()` with a `BaseModel` subclass.
+    call `Config.validate()` with a `BaseModel` subclass, use `imbrex.load()`,
+    or load [remote secrets](guide/remote-secrets.md).  Without Pydantic,
+    `validate()` still accepts a dataclass or any callable taking keyword
+    arguments.

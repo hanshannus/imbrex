@@ -44,11 +44,11 @@ Resulting data:
 }
 ```
 
-!!! warning "All values are strings"
+!!! warning "Values are strings unless you ask for coercion"
 
-    Environment variables are always strings.  Use `Config.validate()` with a
-    Pydantic model to coerce `"20"` → `20` and `"true"` → `True`
-    automatically:
+    Environment variables are always strings.  Either pass `coerce=True`
+    (see [below](#type-coercion)) or use `Config.validate()` with a Pydantic
+    model to convert `"20"` → `20` and `"true"` → `True`:
 
     ```python
     from pydantic import BaseModel
@@ -59,6 +59,34 @@ Resulting data:
 
     settings = cfg.validate(Settings)  # types are coerced
     ```
+
+## Type coercion
+
+`coerce=True` converts values that clearly look like another type:
+
+```python
+cfg = Config.from_env(prefix="APP_", coerce=True)
+# APP_DEBUG=true            → True
+# APP_DATABASE__POOL_SIZE=20 → 20
+# APP_RATIO=0.5             → 0.5
+# APP_HOSTS=["a", "b"]      → ["a", "b"]   (JSON)
+# APP_ZIP=007               → "007"        (left alone)
+```
+
+It is off by default for `from_env()` and on inside
+[`imbrex.load()`](load.md).
+
+## `.env` files
+
+`Config.from_dotenv()` reads a dotenv file with the same naming rules.  The
+file is only read: `os.environ` is not modified.
+
+```python
+cfg = Config.from_dotenv(".env", prefix="APP_", coerce=True)
+```
+
+By default a missing file raises `ConfigFileNotFoundError`; pass
+`required=False` to get an empty `Config` instead.
 
 ## Custom separator
 
@@ -71,7 +99,8 @@ cfg = Config.from_env(prefix="APP_", separator="_")
 
 ## No prefix
 
-Omit the prefix to include **all** environment variables (rarely recommended):
+Omit the prefix to include **all** environment variables (rarely recommended;
+`imbrex.load()` deliberately never does this):
 
 ```python
 cfg = Config.from_env()

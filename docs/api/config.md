@@ -25,9 +25,11 @@ and Pydantic validation.
         - from_dict
         - from_string
         - from_env
+        - from_dotenv
         - merge
         - validate
         - get
+        - explain
         - override
         - freeze
         - unfreeze
@@ -35,6 +37,7 @@ and Pydantic validation.
         - __contains__
         - __len__
         - __iter__
+        - __getattr__
         - to_dict
         - __repr__
         - __eq__

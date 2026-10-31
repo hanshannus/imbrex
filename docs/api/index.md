@@ -10,6 +10,9 @@ All public symbols are available from the top-level `imbrex` package:
 ```python
 from imbrex import (
     Config,
+    load,
+    load_config,
+    Explanation,
     MergeStrategy,
     DEFAULT_PRIORITY,
     ImbrexError,
@@ -26,6 +29,7 @@ from imbrex import (
 | Page | Description |
 |---|---|
 | [`Config`](config.md) | The core configuration container — loaders, merging, validation, dict-like access |
+| [`load()`](load.md) | One-call loading, `load_config()` and the `Explanation` type |
 | [`MergeStrategy`](merge.md) | Merge strategy enum and the `deep_merge()` function |
 | [`Priority`](priority.md) | `DEFAULT_PRIORITY` table, `sort_paths()`, `priority_of()` |
 | [`Exceptions`](exceptions.md) | Typed exception hierarchy |
