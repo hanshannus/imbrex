@@ -18,6 +18,7 @@ from imbrex import (
     ImbrexError,
     ConfigFileNotFoundError,
     ConfigParseError,
+    ConfigInterpolationError,
     ConfigValidationError,
     FrozenConfigError,
     UnsupportedFormatError,

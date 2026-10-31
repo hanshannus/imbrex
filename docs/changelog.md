@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   per-key provenance.
 - **Secret redaction** — `to_dict(redact=True)`; validation errors and
   `ConfigValidationError.data` no longer expose values.
+- **Interpolation** — `${key}`, `${env:VAR}`, `${...:-default}` and `$${` escape;
+  `Config.interpolate()`, applied by default in `load()`.
 - **`imbrex` command line** — `show`, `explain`, `validate` and `diff`.
 - `py.typed` marker and a test CI workflow.
 

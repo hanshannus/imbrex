@@ -138,6 +138,7 @@ cfg.freeze()
 | Topic | Description |
 |---|---|
 | [One-Call Loading](load.md) | `imbrex.load()`: files + `.env` + env vars → typed settings |
+| [Interpolation](interpolation.md) | `${database.host}` and `${env:VAR:-default}` inside values |
 | [Command Line](cli.md) | `imbrex show / explain / validate / diff` |
 | [Provenance & Safe Output](provenance.md) | `explain()`, attribute access, secret redaction |
 | [Loading Configuration](loading.md) | All the ways to load config: files, strings, dicts, env vars |

@@ -2,6 +2,7 @@
 
 ### Feat
 
+- add `${key}` / `${env:VAR:-default}` interpolation via `Config.interpolate()` (default in `load()`), with `ConfigInterpolationError`
 - add `imbrex` CLI: `show`, `explain`, `validate`, `diff` (also `python -m imbrex`)
 - add `imbrex.load()` / `load_config()`: files + `.env` + env vars + overrides in one call with a fixed precedence
 - add `Config.from_dotenv()` and `coerce=True` for `from_env()` (bool, int, float, JSON)

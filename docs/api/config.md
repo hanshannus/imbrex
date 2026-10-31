@@ -29,6 +29,7 @@ and Pydantic validation.
         - merge
         - validate
         - get
+        - interpolate
         - explain
         - override
         - freeze

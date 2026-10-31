@@ -50,6 +50,15 @@ cfg.database.url          # attribute access; cfg["database.url"] also works
 cfg.to_dict(redact=True)  # safe to log
 ```
 
+### Reference other values
+
+```toml
+[database]
+host = "db.internal"
+url  = "postgresql://${database.host}/app"
+user = "${env:DB_USER:-app}"
+```
+
 ### Command line
 
 ```bash

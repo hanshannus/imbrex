@@ -12,6 +12,7 @@ graph TD
     ImbrexError --> ConfigFileNotFoundError
     ImbrexError --> ConfigParseError
     ImbrexError --> ConfigValidationError
+    ImbrexError --> ConfigInterpolationError
     ImbrexError --> ConfigSecretDescriptorError
     ImbrexError --> SecretProviderError
     ImbrexError --> FrozenConfigError
@@ -53,6 +54,10 @@ graph TD
 ::: imbrex.ConfigParseError
     options:
       show_source: true
+
+## `ConfigInterpolationError`
+
+::: imbrex.ConfigInterpolationError
 
 ## `ConfigValidationError`
 
