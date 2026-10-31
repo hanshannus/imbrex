@@ -36,6 +36,7 @@ from importlib.metadata import version as _pkg_version
 from imbrex._config import Config
 from imbrex._exceptions import (
     ConfigFileNotFoundError,
+    ConfigInterpolationError,
     ConfigParseError,
     ConfigSecretDescriptorError,
     ConfigValidationError,
@@ -62,6 +63,7 @@ __all__ = [
     # Exceptions
     "ImbrexError",
     "ConfigFileNotFoundError",
+    "ConfigInterpolationError",
     "ConfigParseError",
     "ConfigSecretDescriptorError",
     "ConfigValidationError",

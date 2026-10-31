@@ -35,7 +35,7 @@ from __future__ import annotations
 
 import copy
 import os
-from collections.abc import Iterator
+from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, TypeVar
@@ -50,6 +50,7 @@ from imbrex._exceptions import (
     UnsupportedFormatError,
 )
 from imbrex._explain import Explanation, build_explanation
+from imbrex._interpolate import Resolver
 from imbrex._merge import MergeStrategy, deep_merge
 from imbrex._parsers import (
     SUPPORTED_FORMATS,
@@ -881,6 +882,35 @@ class Config:
         if not hits:
             raise KeyError(path)
         return build_explanation(path, hits)
+
+    def interpolate(self, *, env: Mapping[str, str] | None = None) -> Config:
+        """
+        Return a new Config with every ``${...}`` reference resolved.
+
+        * ``${db.host}`` — another key (dot-path), resolved after merging.
+        * ``${env:HOME}`` — an environment variable (*env*, default
+          ``os.environ``).
+        * ``${env:PORT:-8080}`` / ``${db.host:-localhost}`` — fallback used
+          when the variable or key is missing.
+        * ``$${`` — a literal ``${``.
+
+        A value that is exactly one reference keeps the referenced type
+        (``"${server.port}"`` → ``8080``); inside longer text the value is
+        converted to ``str``.  :meth:`explain` reports the resolved values.
+
+        Raises
+        ------
+        ConfigInterpolationError
+            For a missing key or variable (without default) or a circular
+            reference.
+
+        """
+        resolver = Resolver(self._data, os.environ if env is None else env)
+        data: dict[str, Any] = resolver.resolve(self._data)
+        layers = [
+            (src, resolver.resolve(layer, lenient=True)) for src, layer in self._layers
+        ]
+        return Config(data, list(self._sources), freeze=self._frozen, layers=layers)
 
     def to_dict(self, *, redact: bool = False) -> dict[str, Any]:
         """

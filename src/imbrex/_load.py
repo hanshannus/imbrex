@@ -40,6 +40,7 @@ def load_config(
     dotenv: str | Path | None = ".env",
     extension: str | None = None,
     overrides: dict[str, Any] | None = None,
+    interpolate: bool = True,
 ) -> Config:
     """
     Build a :class:`Config` from every standard source, in a fixed order.
@@ -67,6 +68,9 @@ def load_config(
         directory holds a single format.
     overrides: dict | None
         Highest-priority values, e.g. from CLI flags.
+    interpolate: bool
+        Resolve ``${key}`` / ``${env:VAR}`` references after merging
+        (see :meth:`Config.interpolate`).  Default ``True``.
 
     """
     layers: list[Config] = []
@@ -87,7 +91,8 @@ def load_config(
     if overrides:
         layers.append(Config.from_dict(overrides))
 
-    return Config.merge(*layers)
+    cfg = Config.merge(*layers)
+    return cfg.interpolate() if interpolate else cfg
 
 
 @overload

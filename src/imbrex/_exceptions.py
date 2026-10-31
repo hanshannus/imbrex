@@ -52,6 +52,16 @@ class ConfigValidationError(ImbrexError):
         super().__init__(f"Validation failed:{sep}{detail}")
 
 
+class ConfigInterpolationError(ImbrexError):
+    """Raised when a ``${...}`` reference cannot be resolved."""
+
+    def __init__(self, reference: str, where: str, reason: str) -> None:
+        self.reference = reference
+        self.where = where
+        self.reason = reason
+        super().__init__(f"Cannot resolve ${{{reference}}} in {where!r}: {reason}")
+
+
 class ConfigSecretDescriptorError(ImbrexError):
     """Raised when a secrets descriptor file is invalid."""
 
