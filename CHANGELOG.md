@@ -2,6 +2,7 @@
 
 ### Feat
 
+- add `Config.with_overrides()`: a modified copy, safe for concurrent code and frozen configs
 - add `${key}` / `${env:VAR:-default}` interpolation via `Config.interpolate()` (default in `load()`), with `ConfigInterpolationError`
 - add `imbrex` CLI: `show`, `explain`, `validate`, `diff` (also `python -m imbrex`)
 - add `imbrex.load()` / `load_config()`: files + `.env` + env vars + overrides in one call with a fixed precedence
@@ -12,6 +13,7 @@
 
 ### Fix
 
+- `override()` could leave stale values behind when threads overlapped; overrides are now serialised by a lock
 - derive `__version__` from package metadata (was stale at 0.1.1)
 
 ### Chore

@@ -32,6 +32,7 @@ and Pydantic validation.
         - interpolate
         - explain
         - override
+        - with_overrides
         - freeze
         - unfreeze
         - __getitem__

@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   `ConfigValidationError.data` no longer expose values.
 - **Interpolation** — `${key}`, `${env:VAR}`, `${...:-default}` and `$${` escape;
   `Config.interpolate()`, applied by default in `load()`.
+- **`Config.with_overrides()`** — a modified copy; safe for concurrent code
+  and for frozen configs.
 - **`imbrex` command line** — `show`, `explain`, `validate` and `diff`.
 - `py.typed` marker and a test CI workflow.
 
@@ -28,6 +30,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- `override()` could leave stale values behind when threads overlapped; overrides
+  are now serialised by a lock.
 - `import imbrex` no longer requires Pydantic; it is only needed for
   `validate()` with a model, `load()` and remote secrets.
 - `__version__` is read from the package metadata.

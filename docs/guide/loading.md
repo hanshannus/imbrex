@@ -233,6 +233,35 @@ Overrides are always restored, even when an exception occurs inside the
     # key is removed on exit
     ```
 
+### Overrides and concurrency
+
+`override()` patches the object itself, so every reader sees the change in
+every thread. That is what you want in a test, and it is why overrides are
+**serialised**: a second thread entering `override()` waits until the first
+one leaves, so interleaved overrides can no longer leave stale values behind.
+Nesting inside one thread works. The lock cannot protect asyncio tasks that
+interleave in a single thread.
+
+For code that runs concurrently (a web request, a worker), use
+`with_overrides()`. It returns a modified **copy** and shares no state, so it
+is safe anywhere, including on frozen configs:
+
+```python
+request_cfg = cfg.with_overrides({"app.debug": True})
+
+cfg["app.debug"]          # False: the original is untouched
+request_cfg["app.debug"]  # True
+request_cfg.explain("app.debug").source  # '<overrides>'
+```
+
+| | `override()` | `with_overrides()` |
+|---|---|---|
+| Effect | Patches this object, then restores it | Returns a modified copy |
+| Other readers see it | Yes, in every thread | No |
+| Concurrent use | Serialised by a lock | Safe |
+| Frozen configs | Raises `FrozenConfigError` | Works, copy stays frozen |
+| Best for | Tests that patch a shared config | Application code |
+
 ## Frozen / immutable configs
 
 Lock a `Config` instance so any mutation attempt raises `FrozenConfigError`
