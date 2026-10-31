@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 from pydantic import BaseModel
 
@@ -86,3 +88,24 @@ class TestValidationErrors:
         with pytest.raises(ConfigValidationError) as exc:
             cfg.validate(Settings)
         assert exc.value.cause is not None
+
+
+class TestErrorSource:
+    def test_names_the_file_that_supplied_the_bad_value(self, tmp_path: Path) -> None:
+        (tmp_path / "defaults.toml").write_text(
+            '[database]\nurl = "x"\npassword = "p"\n'
+        )
+        (tmp_path / "production.toml").write_text('[database]\npool_size = "many"\n')
+        cfg = Config.from_dir(tmp_path, env="production")
+
+        class S(BaseModel):
+            database: DB
+            api_token: str
+
+        with pytest.raises(ConfigValidationError) as exc:
+            cfg.validate(S)
+        text = str(exc.value)
+        pool = next(line for line in text.splitlines() if "database.pool_size" in line)
+        assert "production.toml" in pool
+        token = next(line for line in text.splitlines() if "api_token" in line)
+        assert "(from" not in token  # missing keys have no source

@@ -38,10 +38,9 @@ import os
 from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from dotenv import dotenv_values
-from pydantic import BaseModel
 
 from imbrex._env import nest_env
 from imbrex._exceptions import (
@@ -59,10 +58,12 @@ from imbrex._parsers import (
 )
 from imbrex._priority import DEFAULT_PRIORITY, sort_paths
 from imbrex._redact import redact as _redact
-from imbrex._secrets import is_secret_descriptor, load_remote_secrets
-from imbrex._utils import _MISSING, _get_path, _set_path
+from imbrex._utils import _MISSING, _get_path, _set_path, is_secret_descriptor
 
-T = TypeVar("T", bound=BaseModel)
+if TYPE_CHECKING:
+    from pydantic import BaseModel
+
+T = TypeVar("T", bound="BaseModel")
 
 
 class Config:
@@ -424,6 +425,18 @@ class Config:
             freeze=freeze,
         )
 
+        if not descriptor_paths:
+            return base_config
+
+        try:
+            from imbrex._secrets import load_remote_secrets
+        except ImportError as exc:  # pragma: no cover - needs a bare install
+            raise ImportError(
+                "Secret descriptor files need Pydantic: "
+                "pip install 'imbrex[pydantic]' (plus a provider extra such as "
+                "'imbrex[aws]')."
+            ) from exc
+
         secret_data, secret_sources = load_remote_secrets(
             descriptor_paths,
             merge_strategy=merge_strategy,
@@ -697,16 +710,26 @@ class Config:
             print(settings.database.url)
 
         """
-        if isinstance(schema, type) and issubclass(schema, BaseModel):
+        try:
+            from pydantic import BaseModel as _BaseModel
             from pydantic import ValidationError
+        except ImportError:  # Pydantic is optional: plain callables still work
+            _BaseModel = None  # type: ignore[assignment,misc]
 
+        if (
+            _BaseModel is not None
+            and isinstance(schema, type)
+            and issubclass(schema, _BaseModel)
+        ):
             try:
                 return schema.model_validate(self._data)
             except ValidationError as exc:
-                lines = [
-                    f"  {'.'.join(str(p) for p in e['loc']) or '<root>'}: {e['msg']}"
-                    for e in exc.errors(include_input=False, include_url=False)
-                ]
+                lines = []
+                for e in exc.errors(include_input=False, include_url=False):
+                    path = ".".join(str(p) for p in e["loc"])
+                    line = f"  {path or '<root>'}: {e['msg']}"
+                    origin = self._origin(path) if path else None
+                    lines.append(f"{line} (from {origin})" if origin else line)
                 raise ConfigValidationError(
                     exc, _redact(self._data), "\n" + "\n".join(lines)
                 ) from exc
@@ -829,6 +852,13 @@ class Config:
             ]
             return Config(value, self._sources, freeze=True, layers=layers)
         return value
+
+    def _origin(self, path: str) -> str | None:
+        """Source that supplied the winning value at *path*, if known."""
+        for src, layer in reversed(self._layers):
+            if _get_path(layer, path, _MISSING) is not _MISSING:
+                return src
+        return None
 
     def explain(self, path: str) -> Explanation:
         """

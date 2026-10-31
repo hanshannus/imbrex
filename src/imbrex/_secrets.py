@@ -15,14 +15,6 @@ from imbrex._exceptions import ConfigSecretDescriptorError, SecretProviderError
 from imbrex._merge import MergeStrategy, deep_merge
 from imbrex._parsers import parse_file
 
-# Descriptor filename stems that should be treated as secret descriptors.
-SECRET_DESCRIPTOR_STEMS: set[str] = {
-    "secret",
-    "secrets",
-    ".secret",
-    ".secrets",
-}
-
 # Fixed merge priority slot for fetched remote secrets.
 REMOTE_SECRETS_PRIORITY: int = 800
 
@@ -72,11 +64,6 @@ class SecretsDescriptor(BaseModel):
 
 ProviderConfig = AwsSecretsConfig | AzureSecretsConfig | GcpSecretsConfig
 ProviderFetcher = Callable[[Any], dict[str, Any]]
-
-
-def is_secret_descriptor(path: Path) -> bool:
-    """Return True when the filename stem marks this file as a secret descriptor."""
-    return path.stem.lower() in SECRET_DESCRIPTOR_STEMS
 
 
 def apply_descriptor_env_overrides(raw: dict[str, Any]) -> dict[str, Any]:

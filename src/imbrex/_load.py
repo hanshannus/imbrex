@@ -3,15 +3,16 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, TypeVar, overload
-
-from pydantic import BaseModel
+from typing import TYPE_CHECKING, Any, TypeVar, overload
 
 from imbrex._config import Config
 from imbrex._exceptions import ConfigFileNotFoundError, ImbrexError
 from imbrex._parsers import SUPPORTED_FORMATS
 
-T = TypeVar("T", bound=BaseModel)
+if TYPE_CHECKING:
+    from pydantic import BaseModel
+
+T = TypeVar("T", bound="BaseModel")
 
 _EXT_FOR = {".toml": "toml", ".yaml": "yaml", ".yml": "yaml", ".json": "json"}
 

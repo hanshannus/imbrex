@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Any
 
 _MISSING = object()  # sentinel distinct from None
@@ -32,3 +33,17 @@ def _set_path(data: dict[str, Any], path: str, value: Any) -> None:
     for part in parts[:-1]:
         node = node.setdefault(part, {})
     node[parts[-1]] = value
+
+
+# Descriptor filename stems that should be treated as secret descriptors.
+SECRET_DESCRIPTOR_STEMS: set[str] = {
+    "secret",
+    "secrets",
+    ".secret",
+    ".secrets",
+}
+
+
+def is_secret_descriptor(path: Path) -> bool:
+    """Return True when the filename stem marks this file as a secret descriptor."""
+    return path.stem.lower() in SECRET_DESCRIPTOR_STEMS

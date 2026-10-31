@@ -16,6 +16,19 @@ class Explanation:
     ``source`` is the layer whose value won; ``overridden`` lists the earlier
     layers that also defined the key, lowest priority first.  Values under
     sensitive-looking keys are masked.
+
+    Attributes
+    ----------
+    path: str
+        The dot-path that was explained.
+    value: Any
+        The winning value.
+    source: str
+        File path or label (``<env prefix='APP_'>``, ``<dict:0>`` ...) of the
+        winning layer.
+    overridden: list[tuple[str, Any]]
+        ``(source, value)`` pairs from lower-priority layers.
+
     """
 
     path: str
