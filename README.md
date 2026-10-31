@@ -17,12 +17,7 @@ uv add imbrex[secrets]    # include AWS/Azure/GCP providers
 ## Quick start
 
 ```python
-from imbrex import Config
-
-# load a directory, auto-sorted by environment tier
-cfg = Config.from_dir("config/", extension="toml", env="production")
-
-# validate with Pydantic
+import imbrex
 from pydantic import BaseModel
 
 class Database(BaseModel):
@@ -33,10 +28,30 @@ class Settings(BaseModel):
     debug: bool = False
     database: Database
 
-settings = cfg.validate(Settings)
+settings = imbrex.load(Settings, "config/", env="production", env_prefix="APP_")
 print(settings.database.url)
-print(settings.database.pool_size)
 ```
+
+`load()` reads, lowest to highest priority: the files in `config/` (by
+environment tier) → `.env` → `APP_*` environment variables → `overrides={...}`.
+Types are coerced (`APP_DEBUG=true` → `True`), and errors name the key
+(`database.url: Field required`) without echoing secret values.
+
+### Where did this value come from?
+
+```python
+cfg = imbrex.load_config("config/", env="production", env_prefix="APP_")
+print(cfg.explain("database.url"))
+# database.url = 'postgres://prod'
+#   from config/production.toml
+#   overrides config/defaults.toml: 'sqlite:///default.db'
+
+cfg.database.url          # attribute access; cfg["database.url"] also works
+cfg.to_dict(redact=True)  # safe to log
+```
+
+Need finer control? Everything `load()` does is available as building blocks
+below: `Config.from_dir`, `from_dotenv`, `from_env`, `merge`, ...
 
 ---
 
@@ -97,6 +112,8 @@ cfg = Config.from_dir(
 cfg = Config.from_dict({"db": {"url": "sqlite:///default.db"}}, {"db": {"url": "postgres://..."}})
 cfg = Config.from_string('[cache]\nbackend = "redis"', fmt="toml")
 cfg = Config.from_env(prefix="APP_")    # APP_DATABASE__URL → database.url
+cfg = Config.from_env(prefix="APP_", coerce=True)   # "true" → True, "8080" → 8080
+cfg = Config.from_dotenv(".env", prefix="APP_")     # same rules, read from a file
 ```
 
 ### Merge Config objects

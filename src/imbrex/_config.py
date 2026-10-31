@@ -40,14 +40,17 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, TypeVar
 
+from dotenv import dotenv_values
 from pydantic import BaseModel
 
+from imbrex._env import nest_env
 from imbrex._exceptions import (
     ConfigFileNotFoundError,
     ConfigValidationError,
     FrozenConfigError,
     UnsupportedFormatError,
 )
+from imbrex._explain import Explanation, build_explanation
 from imbrex._merge import MergeStrategy, deep_merge
 from imbrex._parsers import (
     SUPPORTED_FORMATS,
@@ -63,11 +66,12 @@ T = TypeVar("T", bound=BaseModel)
 
 
 class Config:
-    __slots__ = ("_data", "_sources", "_frozen")
+    __slots__ = ("_data", "_sources", "_frozen", "_layers")
 
     _data: dict[str, Any]
     _sources: list[str]
     _frozen: bool
+    _layers: list[tuple[str, dict[str, Any]]]
 
     def __init__(
         self,
@@ -75,6 +79,7 @@ class Config:
         sources: list[str],
         *,
         freeze: bool = False,
+        layers: list[tuple[str, dict[str, Any]]] | None = None,
     ) -> None:
         """
         Immutable, merged configuration container.
@@ -98,6 +103,7 @@ class Config:
         object.__setattr__(self, "_data", data)
         object.__setattr__(self, "_sources", sources)
         object.__setattr__(self, "_frozen", freeze)
+        object.__setattr__(self, "_layers", layers or [])
 
     # ------------------------------------------------------------------
     # Freeze / unfreeze
@@ -432,7 +438,12 @@ class Config:
             strategy=merge_strategy,
             key_strategies=key_strategies,
         )
-        return cls(merged, [*base_config.sources, *secret_sources], freeze=freeze)
+        return cls(
+            merged,
+            [*base_config.sources, *secret_sources],
+            freeze=freeze,
+            layers=[*base_config._layers, (", ".join(secret_sources), secret_data)],
+        )
 
     # ------------------------------------------------------------------
     # Classmethods — raw-data loaders
@@ -473,7 +484,7 @@ class Config:
         merged = deep_merge(
             *dicts, strategy=merge_strategy, key_strategies=key_strategies
         )
-        return cls(merged, sources, freeze=freeze)
+        return cls(merged, sources, freeze=freeze, layers=list(zip(sources, dicts)))
 
     @classmethod
     def from_string(
@@ -505,7 +516,8 @@ class Config:
         if fmt not in SUPPORTED_FORMATS:
             raise UnsupportedFormatError(fmt, SUPPORTED_FORMATS)
         data = parse_string(content, fmt=fmt)
-        return cls(data, [f"<string:{fmt}>"], freeze=freeze)
+        label = f"<string:{fmt}>"
+        return cls(data, [label], freeze=freeze, layers=[(label, data)])
 
     @classmethod
     def from_env(
@@ -513,6 +525,7 @@ class Config:
         prefix: str = "",
         *,
         separator: str = "__",
+        coerce: bool = False,
         freeze: bool = False,
     ) -> Config:
         """
@@ -531,6 +544,9 @@ class Config:
             The prefix itself is stripped before key conversion.
         separator: str (default: "__")
             Nesting separator in variable names.
+        coerce: bool (default: False)
+            Convert ``true``/``false``, integers, floats and JSON lists or
+            objects to Python values instead of leaving strings.
         freeze: bool (default: False)
             Lock the returned Config against mutation.
 
@@ -540,20 +556,51 @@ class Config:
             Instance of ``Config`` containing the merged configuration.
 
         """
-        data: dict[str, Any] = {}
-        prefix_upper = prefix.upper()
+        data = nest_env(os.environ, prefix, separator=separator, coerce=coerce)
+        label = f"<env prefix={prefix!r}>"
+        return cls(data, [label], freeze=freeze, layers=[(label, data)])
 
-        for raw_key, value in os.environ.items():
-            if prefix_upper and not raw_key.upper().startswith(prefix_upper):
-                continue
-            stripped = raw_key[len(prefix) :] if prefix else raw_key
-            parts = stripped.lower().split(separator.lower())
-            node: dict[str, Any] = data
-            for part in parts[:-1]:
-                node = node.setdefault(part, {})
-            node[parts[-1]] = value
+    @classmethod
+    def from_dotenv(
+        cls,
+        path: str | Path = ".env",
+        prefix: str = "",
+        *,
+        separator: str = "__",
+        coerce: bool = False,
+        required: bool = True,
+        freeze: bool = False,
+    ) -> Config:
+        """
+        Build a :class:`Config` from a ``.env`` file.
 
-        return cls(data, [f"<env prefix={prefix!r}>"], freeze=freeze)
+        Uses the same naming rules as :meth:`from_env` (``APP_DB__URL`` →
+        ``db.url``).  The file is only read: ``os.environ`` is not modified.
+
+        Parameters
+        ----------
+        path: str | Path (default: ".env")
+            The dotenv file.
+        prefix: str (default: "")
+            Only variables beginning with *prefix* are included.
+        separator: str (default: "__")
+            Nesting separator in variable names.
+        coerce: bool (default: False)
+            See :meth:`from_env`.
+        required: bool (default: True)
+            When ``False`` a missing file yields an empty Config instead of
+            raising :class:`ConfigFileNotFoundError`.
+        freeze: bool (default: False)
+            Lock the returned Config against mutation.
+
+        """
+        p = Path(path)
+        if not p.is_file():
+            if required:
+                raise ConfigFileNotFoundError(p)
+            return cls({}, [], freeze=freeze)
+        data = nest_env(dotenv_values(p), prefix, separator=separator, coerce=coerce)
+        return cls(data, [str(p)], freeze=freeze, layers=[(str(p), data)])
 
     # ------------------------------------------------------------------
     # Classmethod — merge existing Config objects
@@ -592,10 +639,11 @@ class Config:
         """
         dicts = [c._data for c in configs]
         sources = [src for c in configs for src in c._sources]
+        layers = [layer for c in configs for layer in c._layers]
         merged = deep_merge(
             *dicts, strategy=merge_strategy, key_strategies=key_strategies
         )
-        return cls(merged, sources, freeze=freeze)
+        return cls(merged, sources, freeze=freeze, layers=layers)
 
     # ------------------------------------------------------------------
     # Validation
@@ -762,6 +810,48 @@ class Config:
     def __iter__(self) -> Iterator[Any]:
         return iter(self._data)
 
+    def __getattr__(self, name: str) -> Any:
+        """Allow ``cfg.database.url``; real attributes and methods win."""
+        if name.startswith("_"):
+            raise AttributeError(name)
+        try:
+            value = self._data[name]
+        except KeyError:
+            raise AttributeError(
+                f"{type(self).__name__!r} has no key {name!r} "
+                f"(keys: {list(self._data)})"
+            ) from None
+        if isinstance(value, dict):
+            layers = [
+                (src, d[name])
+                for src, d in self._layers
+                if isinstance(d.get(name), dict)
+            ]
+            return Config(value, self._sources, freeze=True, layers=layers)
+        return value
+
+    def explain(self, path: str) -> Explanation:
+        """
+        Say where the value at dot-*path* came from.
+
+        Returns an :class:`Explanation` with the winning source and the
+        lower-priority sources it overrode.  Sensitive values are masked.
+
+        Raises
+        ------
+        KeyError
+            When *path* is not present in the config.
+
+        """
+        hits = [
+            (src, found)
+            for src, layer in self._layers
+            if (found := _get_path(layer, path, _MISSING)) is not _MISSING
+        ]
+        if not hits:
+            raise KeyError(path)
+        return build_explanation(path, hits)
+
     def to_dict(self, *, redact: bool = False) -> dict[str, Any]:
         """
         Return a deep copy of the merged config as a plain dict.
@@ -803,7 +893,7 @@ class Config:
         merged = deep_merge(
             *dicts, strategy=merge_strategy, key_strategies=key_strategies
         )
-        return cls(merged, sources, freeze=freeze)
+        return cls(merged, sources, freeze=freeze, layers=list(zip(sources, dicts)))
 
     # ------------------------------------------------------------------
     # Dunder

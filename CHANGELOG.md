@@ -2,6 +2,9 @@
 
 ### Feat
 
+- add `imbrex.load()` / `load_config()`: files + `.env` + env vars + overrides in one call with a fixed precedence
+- add `Config.from_dotenv()` and `coerce=True` for `from_env()` (bool, int, float, JSON)
+- add attribute access (`cfg.database.url`) and `Config.explain(path)` for per-key provenance
 - add `Config.to_dict(redact=True)` and mask sensitive-looking keys (`password`, `*_token`, `api_key`, `*_secret`, ...)
 - `validate()` errors now list key paths without echoing input values; `ConfigValidationError.data` is redacted
 

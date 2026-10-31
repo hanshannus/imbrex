@@ -44,12 +44,17 @@ from imbrex._exceptions import (
     SecretProviderError,
     UnsupportedFormatError,
 )
+from imbrex._explain import Explanation
+from imbrex._load import load, load_config
 from imbrex._merge import MergeStrategy
 from imbrex._priority import DEFAULT_PRIORITY
 
 __all__ = [
     # Core
     "Config",
+    "load",
+    "load_config",
+    "Explanation",
     # Merge
     "MergeStrategy",
     # Priority
