@@ -50,6 +50,15 @@ cfg.database.url          # attribute access; cfg["database.url"] also works
 cfg.to_dict(redact=True)  # safe to log
 ```
 
+### Command line
+
+```bash
+imbrex show --env production --prefix APP_   # merged config, secrets masked
+imbrex explain database.url --env production # where did this value come from?
+imbrex validate myapp.settings:Settings      # CI gate: exit 1 if invalid
+imbrex diff config staging production        # what changes between environments
+```
+
 Need finer control? Everything `load()` does is available as building blocks
 below: `Config.from_dir`, `from_dotenv`, `from_env`, `merge`, ...
 
