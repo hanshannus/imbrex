@@ -48,7 +48,8 @@ class ConfigValidationError(ImbrexError):
         self.cause = cause
         self.data = data
         detail = summary if summary is not None else str(cause)
-        super().__init__(f"Validation failed: {detail}")
+        sep = "" if detail.startswith("\n") else " "
+        super().__init__(f"Validation failed:{sep}{detail}")
 
 
 class ConfigSecretDescriptorError(ImbrexError):

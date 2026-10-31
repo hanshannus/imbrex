@@ -45,6 +45,9 @@ full = [
     "google-cloud-secret-manager>=2.21",
 ]
 
+[project.scripts]
+imbrex = "imbrex._cli:main"
+
 [project.urls]
 Repository    = "https://github.com/hanshannus/imbrex"
 Documentation = "https://github.com/hanshannus/imbrex#readme"
