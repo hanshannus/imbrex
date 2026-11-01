@@ -207,6 +207,20 @@ including uv, Commitizen, prek hooks, docs, and the release process.
 
 ---
 
+## About the name
+
+*Imbrex* is Latin for the curved roof tile laid over the seams between flat
+tiles (*tegulae*). Like those overlapping tiles, configuration layers sit on
+top of one another, and the topmost layer is the one that shows.
+
+---
+
+## AI disclosure
+
+This package was created with the assistance of LLMs and coding agents. All code, tests, and documentation were produced with, or reviewed by, a human maintainer, but you should evaluate it as you would any other dependency.
+
+---
+
 ## Requirements
 
 - Python ≥ 3.11
